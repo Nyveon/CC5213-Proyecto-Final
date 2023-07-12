@@ -11,9 +11,16 @@ archivo_output = "links.txt"
 
 with open(archivo_input, "r", encoding="utf-8") as archivo:
     lineas = archivo.readlines()
-    links = [linea for linea in lineas if linea.startswith('https')]
+
+    videos = {}
+
+    for i in range(len(lineas)):
+        linea = lineas[i]
+        if linea.startswith('url'):
+            nombre = linea.split('-')[0]
+            videos[nombre] = lineas[i+1]
 
 
 with open(archivo_output, "w") as archivo:
-    for link in links:
-        archivo.write(link)
+    for key, val in videos.items():
+        archivo.write(f'{key}\t{val}')
