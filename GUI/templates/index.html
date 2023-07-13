@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Home</title>
+{% endblock %}
+
+
+{%block content %}
+    <h1>Buscador de Prueba</h1>
+
+    <form action="/" method="get">
+        <div">
+          <input type="text" placeholder="Buscar" name="query">
+          <button type="submit">Search</button>
+        </div>
+    </form>
+
+    <ul>
+        {% for video in videos %}
+        <li>
+            <h2>{{ video.title }}</h2>
+            <iframe width="560" height="315" frameborder="0" src="{{ video.getEmbedUrl() }}"></iframe>
+        </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
