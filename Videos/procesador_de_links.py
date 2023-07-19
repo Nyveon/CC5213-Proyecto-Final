@@ -25,7 +25,7 @@ with open(archivo_input, "r", encoding="utf-8") as archivo:
             nombre = linea.split('url')[1].strip()
 
             # Contador para hacer unicos los ids de vídeo
-            video_id = nombre.split('-')[0]
+            video_id = nombre.split('-')[0].strip()
             if video_id in ids:
                 ids[video_id] += 1
                 video_id = f"{video_id}.{ids[video_id]}"
