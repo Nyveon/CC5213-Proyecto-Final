@@ -1,20 +1,31 @@
 import scipy.spatial
 from unidecode import unidecode
 import fasttext
+import fasttext.util
 import os
 import nltk
 
 # Config
-script_dir = os.path.dirname(os.path.abspath(__file__))
-transcripts = "{script_dir}/../Videos/Transcripciones/Transcripcion_completa"
+script_path = os.path.abspath(__file__)
+script_dir = os.path.dirname(script_path)
+os.chdir(script_dir)
+transcripts = f"{script_dir}/../Videos/Transcripciones/Transcripcion_completa"
 
-# todo: per sentence descriptors and search
 
+def main(texto_consulta: list, n: int) -> dict:
+    """Busca los n videos más similares a cada query usando fasttext
 
-def main(texto_consulta: list) -> dict:
+    Args:
+        texto_consulta (list): lista de queries
+        n (int): numero de resultados por query
+
+    Returns:
+        dict: {query: [video_id1, video_id2, ...]}
+    """
     nltk.download('punkt')
 
-    fasttext_model_path = f"{script_dir}/models/cc.es.300.bin"
+    fasttext.util.download_model("es", if_exists="ignore")
+    fasttext_model_path = "cc.es.300.bin"
     model = fasttext.load_model(os.path.join(script_dir, fasttext_model_path))
     print("palabras =", len(model.words))
     print("dimensión =", model.get_dimension())
@@ -41,7 +52,7 @@ def main(texto_consulta: list) -> dict:
         for video_id, vector in vectors.items():
             distance = scipy.spatial.distance.cosine(query_vector, vector)
             distances[video_id] = distance
-        closest = sorted(distances.items(), key=lambda x: x[1])[:3]
+        closest = sorted(distances.items(), key=lambda x: x[1])[:n]
         results[q] = [str(x[0]) for x in closest]
 
     return results
@@ -54,4 +65,4 @@ if __name__ == "__main__":
         "Busqueda eficiente con R-trees",
         "Unigramas, bigramas y trigramas",
     ]
-    print(main(consulta))
+    print(main(consulta, 3))

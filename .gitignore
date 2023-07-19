@@ -15,3 +15,7 @@ build/
 
 app/models/*
 Codigo/models/*
+
+
+**.bin
+**.bin.gz
