@@ -19,7 +19,7 @@
         {% for video in videos %}
         <li>
             <h2>{{ video.title }}</h2>
-            <iframe width="560" height="315" frameborder="0" src="{{ video.getEmbedUrl() }}"></iframe>
+            <iframe width="560" height="315" frameborder="0" src="{{ video.embed_url }}"></iframe>
         </li>
         {% endfor %}
     </ul>
