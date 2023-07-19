@@ -6,6 +6,7 @@ import glob
 from scipy.spatial import distance
 from sklearn.decomposition import TruncatedSVD
 from numpy.linalg import svd
+import json
 
 
 def calcular_descriptores(vectorizer, texto):
@@ -21,7 +22,7 @@ def calcular_descriptores(vectorizer, texto):
 
     return descriptores
 
-def b_multiplicacion_matrices(nombres, descriptores, textos_consulta, descriptores_consulta):
+def b_multiplicacion_matrices(nombres, descriptores, textos_consulta, descriptores_consulta, num):
     # Se busca el más similar
     print('Buscando similares mediante multiplicación de matrices')
 
@@ -31,13 +32,27 @@ def b_multiplicacion_matrices(nombres, descriptores, textos_consulta, descriptor
     similitudes = np.matmul(descriptores_consulta_f1, descriptores_f1.T)
     t1 = time.time()
 
-    mayor = np.amax(similitudes, axis=1)
-    posicion_mayor = np.argmax(similitudes, axis=1)
+    #mayor = np.amax(similitudes, axis=1)
+    #posicion_mayor = np.argmax(similitudes, axis=1)
 
-    for i in range(len(textos_consulta)):
-        print(f"{textos_consulta[i]} -- {nombres[posicion_mayor[i]]} -- {mayor[i]}")
+    #for i in range(len(textos_consulta)):
+    #    print(f"{textos_consulta[i]} -- {nombres[posicion_mayor[i]]} -- {mayor[i]}")
     
     print("Tiempo Busqueda Multiplicacion: {:.1f} segs".format(t1-t0), end='\n\n')
+
+    values_dict = {}
+
+    indices = np.argsort(-similitudes, axis=1)[:, :num]
+    values = np.take_along_axis(similitudes, indices, axis=1)
+
+    for i in range(len(textos_consulta)):
+        values_dict[textos_consulta[i]] = []
+        for j in range(num):
+            values_dict[textos_consulta[i]].append(nombres[indices[i][j]])
+            print(f"{textos_consulta[i]} -- {nombres[indices[i][j]]} -- {values[i][j]}")
+
+    return values_dict
+
 
 def b_cdist(nombres, descriptores, textos_consulta, descriptores_consulta):
 
@@ -82,6 +97,12 @@ def b_LSA(nombres, descriptores, textos_consulta, descriptores_consulta):
     for i in range(len(textos_consulta)):
         print(f"{textos_consulta[i]} -- {nombres[posicion_mayor[i]]} -- {mayor[i]}")
 
+def comparar_segmentos(video_name, ):
+    '''
+    Se compara cada segmento del video con la consulta,
+    Se entrega un valor que sirve para calcular importancia
+    '''
+
 
 
 def main(vectorizer, textos_consulta):
@@ -92,7 +113,9 @@ def main(vectorizer, textos_consulta):
     previous_path = os.path.dirname(script_dir)
 
     texts_path = f'{previous_path}\Videos\Transcripciones\Transcripcion_completa'
+    json_path = f'{previous_path}\Videos\Transcripciones\Transcripcion_json'
 
+    json_files = glob.glob(json_path + "/*.json")
     txt_files = glob.glob(texts_path + "/*.txt")
 
     textos = []
@@ -102,6 +125,15 @@ def main(vectorizer, textos_consulta):
 
         with open(file_, 'r', encoding="utf-8") as file:
             textos.append(file.read())
+
+    json_info = []
+    json_nombres = []
+    for file_ in json_files:
+        json_nombres.append(file_.split('\\')[-1])
+        with open(file_) as file:
+            data = json.load(file)
+            json_info.append(data)
+
 
     # Calcular el vocabulario
     t0 = time.time()
@@ -115,11 +147,24 @@ def main(vectorizer, textos_consulta):
     # Se calcula la matriz de descriptores para los textos de consulta (usando el vocabulario)
     descriptores_consulta = calcular_descriptores(vectorizer, textos_consulta)
 
-    b_multiplicacion_matrices(nombres, descriptores, textos_consulta, descriptores_consulta)
+    similitudes = b_multiplicacion_matrices(nombres, descriptores, textos_consulta, descriptores_consulta, 10)
 
-    b_cdist(nombres, descriptores, textos_consulta, descriptores_consulta)
+    #b_cdist(nombres, descriptores, textos_consulta, descriptores_consulta)
 
-    b_LSA(nombres, descriptores, textos_consulta, descriptores_consulta)
+    #b_LSA(nombres, descriptores, textos_consulta, descriptores_consulta)
+
+    # Iteramos sobre similiotudes para buscar sacar los mas parecidos del top10
+    for key, value in similitudes.items():
+        print(f'Calculando para la busqueda "{key}" el orden de los top 10')
+        l_top = [f'{json_path}\{x.split(".txt")[0]}.json' for x in value]
+        
+        # Se muestra el top 10.
+        print(l_top)
+        counts = []
+        # Se itera sobre la lista de top-10 para ordenarlas segun importancia
+        for video in l_top:
+            counts.append(comparar_segmentos(video))
+
 
 
 if __name__ == '__main__':

@@ -2,6 +2,11 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import os
 import json
 
+'''
+Archivo para transcribir los videos a json files con la API: youtube_transcript
+
+'''
+
 # Cambiar el directorio de trabajo al directorio del script
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)

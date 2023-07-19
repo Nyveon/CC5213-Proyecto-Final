@@ -1,0 +1,11 @@
+Query; top1; top2; top3
+Similitud Coseno; url05,4; url05.9; url02.7
+Similitud entre colores; url03.4; url03.4; url03.1
+Descriptores de videos; url03.6; url03.7; url03.8
+Fourier; url02.4; url04.4; url04.5
+Detección de bordes; url01.5; url01.6; url01.7
+Convolución entre imagen y kernel; url01.4; url02.6; url01.3
+Matriz de costos y matriz de flujos; url03.5; url03.4; url05.8
+Errores en codificación MPEG-1; url03.7; url03.6; url03.8
+Busqueda eficiente con R-trees; url06.3; url06.4; url06.2
+Unigramas, bigramas y trigramas; url05.6; url05.1; url13.3
