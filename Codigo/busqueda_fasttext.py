@@ -3,6 +3,10 @@ import fasttext
 import fasttext.util
 import os
 import pickle  # nosec
+import matplotlib.pyplot as plt
+import numpy as np
+
+from sklearn.manifold import TSNE
 from typing import Callable
 from util import normalize
 
@@ -112,6 +116,7 @@ def buscar(texto_consulta: list, n: int, f_descriptor: Callable[[str], list],
     """
     load_model()
     vectors = load_descriptors(recalc, f_descriptor)
+    # visualize(vectors)
 
     results = {}
 
@@ -127,6 +132,45 @@ def buscar(texto_consulta: list, n: int, f_descriptor: Callable[[str], list],
         results[q] = [str(x[0]) for x in closest]
 
     return results
+
+
+def visualize(vectors):
+    """Visualize the vectors in 2D space.
+
+    Args:
+        vectors (dict): The vectors to visualize.
+    """
+    # Convert the vectors to a 2D numpy array
+    vectors_list = np.array(list(vectors.values()))
+    video_ids = list(vectors.keys())
+
+    # Extract the first two characters from each video ID and get unique ones
+    labels = [vid[:2] for vid in video_ids]
+    unique_labels = list(set(labels))
+
+    # Map each unique label to a color
+    colormap = plt.cm.get_cmap('tab20', len(unique_labels))
+    color_dict = {label: colormap(i) for i, label in enumerate(unique_labels)}
+
+    # Use t-SNE to reduce the vectors to two dimensions
+    tsne = TSNE(n_components=2, random_state=0)
+    vectors_2d = tsne.fit_transform(vectors_list)
+
+    # Create a scatter plot of the 2D vectors
+    plt.figure(figsize=(10, 10))
+
+    for i, video_id in enumerate(video_ids):
+        plt.scatter(vectors_2d[i, 0], vectors_2d[i, 1],
+                    color=color_dict[labels[i]])
+        plt.annotate(video_id, (vectors_2d[i, 0], vectors_2d[i, 1]))
+
+    # Create a legend
+    patches = [plt.Line2D([0], [0], marker='o', color='w', label=label,
+                          markerfacecolor=color,
+                          markersize=10) for label, color in color_dict.items()]
+    plt.legend(handles=patches)
+
+    plt.show()
 
 
 if __name__ == "__main__":

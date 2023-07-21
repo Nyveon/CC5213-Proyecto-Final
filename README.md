@@ -7,7 +7,13 @@
 
 ## TODO
 
-- [ ] Fase offline
-- [ ] Interaccion descriptores-interfaz
-- [ ] Modelos de vectorización con deep learning
-- [ ] Busqueda por tiempo en video
+### Eric
+
+- Interfaz conexión con buscadores
+- Buscador TF-IDF/Fasttext + ChatGPT tags/keywords
+- [optional] TF-IDF 2d dimension reduction plot
+
+### Nawel
+
+- Mini Ground-Truth y Evaluación
+- Analisis de optimizacióñ de tf-idf

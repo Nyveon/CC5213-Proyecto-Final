@@ -122,11 +122,11 @@ def bateria_test(g_truth, modulo_buscador, f_descriptor):
            f" usando {f_descriptor.__name__}"))
     mrr10 = calcular_mrr(g_truth, 10, modulo_buscador.buscar, f_descriptor)
     mrr20 = calcular_mrr(g_truth, 20, modulo_buscador.buscar, f_descriptor)
-    map10 = calcular_map(g_truth, 10, modulo_buscador.buscar, f_descriptor)
+    map3 = calcular_map(g_truth, 3, modulo_buscador.buscar, f_descriptor)
     map20 = calcular_map(g_truth, 20, modulo_buscador.buscar, f_descriptor)
     print(f'MRR para n-10 : {mrr10}')
     print(f'MRR para n-20 : {mrr20}')
-    print(f'MAP para n-10 : {map10}')
+    print(f'MAP para n-3 : {map3}')
     print(f'MAP para n-20 : {map20}')
 
 

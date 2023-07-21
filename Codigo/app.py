@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request
+import busqueda_descr
 import webview
 import os
+
 
 # Config
 transcript_path = "Videos/Transcripciones/Transcripcion_completa"
@@ -30,7 +32,7 @@ def load_videos():
                   "r", encoding="utf-8") as f:
             title = f.readline()
             url = f.readline()
-            video_id = filename.split(".")[0]
+            video_id = ".".join(filename.split(".")[:-1])
             videos.append(Video(title, url, video_id))
     return videos
 
@@ -46,11 +48,23 @@ def main():
 
     @app.route('/', methods=['GET'])
     def index():
-        query = request.args.get('query', '')
-        filtered_list = list(filter(
-            lambda x: query.lower() in x.title.lower(), videos))[:3]
+        query = request.args.get('query', None)
+        filtered_list = []
 
-        return render_template('index.html', videos=filtered_list)
+        if query is not None:
+            search_result = busqueda_descr.buscar(
+                [query], 3, busqueda_descr.descriptores_textos)
+
+            print(search_result)
+
+            # Find the videos that match the search result
+            for video in videos:
+                # todo: change this to hashmap
+                print(video.video_id)
+                if video.video_id in search_result[query]:
+                    filtered_list.append(video)
+
+        return render_template('index.html', videos=filtered_list, query=query)
 
     webview.create_window('CC5213', app)
     webview.start()

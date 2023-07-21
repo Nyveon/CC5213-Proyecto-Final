@@ -15,6 +15,12 @@
         </div>
     </form>
 
+    {% if query is not none %}
+    <p>
+        Resultados para: <i>{{ query }}</i>
+    </p>
+    {% endif %}
+
     <ul>
         {% for video in videos %}
         <li>
