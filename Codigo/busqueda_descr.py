@@ -3,15 +3,14 @@ import time
 import os
 import json
 import glob
-import pickle
+import pickle  # nosec
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Config
 global umbral
 umbral = 0.01
-descriptors_file = "descriptors.pkl"
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
+descriptors_file = f"{script_dir}/descriptors.pkl"
 
 '''
 NOTA: Se intentaron metodos como LSA y cdist pero
@@ -52,14 +51,8 @@ def calcular_descriptores_local(show=True):
         min_df=1   # Si aparece en menos, se ignora, misma idea de int y float
     )
 
-    # Cambiar el directorio de trabajo al directorio de los textos completos
-    script_path = os.path.abspath(__file__)
-    script_dir = os.path.dirname(script_path)
-    previous_path = os.path.dirname(script_dir)
-
     texts_path = (
-        f'{previous_path}/Videos/Transcripciones/Transcripcion_completa'
-    )
+        f'{script_dir}/../Videos/Transcripciones/Transcripcion_completa')
 
     txt_files = glob.glob(texts_path + "/*.txt")
 
@@ -119,7 +112,7 @@ def b_multiplicacion_matrices(nombres, descriptores, textos_consulta,
     return values_dict
 
 
-def comparar_segmentos(vectorizer, json_name, query):
+def comparar_segmentos(vectorizer, json_name: str, query: str) -> float:
     '''
     Se compara cada segmento del video con la consulta,
     Se entrega un valor que sirve para calcular importancia
@@ -159,71 +152,36 @@ def buscar(textos_consulta: list, n: int, recalc=False) -> dict:
     Args:
         texto_consulta (list): lista de queries
         n (int): numero de resultados por query
+        recalc (bool, optional): Obligar recalculo de descriptores.
 
     Returns:
         dict: {query: [video_id1, video_id2, ...]}
     """
 
-    # Carga los descriptores locales si ya existen o los calcula y guarda.
-    if os.path.exists(f"{script_dir}/descriptors.pkl") and not recalc:
+    # Carga los descriptores locales si ya existen
+    # Si no existen, los calcula y guarda.
+    if os.path.exists(descriptors_file) and not recalc:
         print("Cargando descriptores pre-calculados...")
-        with open(f"{script_dir}/descriptors.pkl", "rb") as f:
+        with open(descriptors_file, "rb") as f:
             nombres, descriptores, vectorizer = pickle.load(f)  # nosec
     else:
         print("Calculando descriptores...")
         nombres, descriptores, vectorizer = calcular_descriptores_local()
-        with open(f"{script_dir}/descriptors.pkl", "wb") as f:
+        with open(descriptors_file, "wb") as f:
             pickle.dump((nombres, descriptores, vectorizer), f)
 
-    return main(descriptores, nombres, vectorizer, textos_consulta, n)
-
-
-def main(descriptores, nombres, vectorizer, textos_consulta, n):
-    # Cambiar el directorio de trabajo al directorio de los textos completos
-    script_path = os.path.abspath(__file__)
-    script_dir = os.path.dirname(script_path)
-    previous_path = os.path.dirname(script_dir)
-
-    json_path = f'{previous_path}/Videos/Transcripciones/Transcripcion_json'
-    """
-    txt_files = glob.glob(texts_path + "/*.txt")
-
-    textos = []
-    nombres_completos = []
-    nombres = []
-    for file_ in txt_files:
-        nombres.append(file_.split('\\')[-1].split('.txt')[0])
-        with open(file_, 'r', encoding="utf-8") as file:
-            nombres_completos.append(file.readline().strip())
-            file.readline()
-
-            textos.append(file.readline())
-
-    # Calcular el vocabulario
-    t0 = time.time()
-    vectorizer.fit(textos)
-    t1 = time.time()
-    print(f'Tiempo para calcular el vocab: {t1-t0}')
-
-    ### Calculando descriptores
-    descriptores = calcular_descriptores(vectorizer, textos)
-    """
     # Se calcula la matriz de descriptores para los textos de consulta
-    # (usando el vocabulario)
-    descriptores_consulta = calcular_descriptores(vectorizer, textos_consulta)
+    json_path = f'{script_dir}/../Videos/Transcripciones/Transcripcion_json'
 
+    descriptores_consulta = calcular_descriptores(vectorizer, textos_consulta)
     similitudes = b_multiplicacion_matrices(
         nombres, descriptores,
         textos_consulta, descriptores_consulta, 20)
 
-    # Diccionario que se retorna, tiene la forma
-    # query : [val1, val2, val3]
     d_return = {}
 
-    # Iteramos sobre similitudes para buscar sacar los mas parecidos del top10
     for key, value in similitudes.items():
         l_top = [f'{json_path}/{x}.json' for x in value]
-        # Se muestra el top 10.
         counts = []
         # Se itera sobre la lista de top-10 para ordenarlas segun importancia
         for video in l_top:
@@ -239,4 +197,4 @@ if __name__ == '__main__':
         'Similitud Coseno',
     ]
 
-    main(textos_consulta)
+    print(buscar(textos_consulta, 3))

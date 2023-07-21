@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import busqueda_descr as bus_desc
+import busqueda_fasttext as bus_fast
 
 
 def r_prec(ground_values: list[str], search_values: list[str], n=3):
@@ -22,7 +23,7 @@ def mrr(r_precisions: list[int]):
     return sum(r_precisions)/len(r_precisions)
 
 
-def calcular_mrr(g_truth, n=10, show_individual=False):
+def calcular_mrr(g_truth: pd.DataFrame, n, buscador, show_individual=False):
     '''
     Calcula el Mean Reciprocal Rank
     g_truth : matris ground
@@ -33,7 +34,7 @@ def calcular_mrr(g_truth, n=10, show_individual=False):
     textos_consulta = g_truth['Query'].tolist()
 
     # Comparamos con busqueda_descr
-    result_busc_desc = bus_desc.buscar(textos_consulta, n)
+    result_busc_desc = buscador.buscar(textos_consulta, n, True)
 
     r_precisions = []
     # Algunas métricas
@@ -47,7 +48,7 @@ def calcular_mrr(g_truth, n=10, show_individual=False):
         r_precisions.append(r_precs)
 
         if show_individual:
-            print(f'R-Precission de "{key}": {r_precs:.2f}')
+            print(f'R-Precision de "{key}": {r_precs:.2f}')
 
     return mrr(r_precisions)
 
@@ -68,11 +69,19 @@ def main():
             # Eliminar los espacios en blanco de los strings
             g_truth[columna] = g_truth[columna].str.strip()
 
-    mrr_10 = calcular_mrr(g_truth, n=10)
-    mrr_20 = calcular_mrr(g_truth, n=20)
-
+    print("Testeando TF-IDF/Multiplicación de Matrices con texto completo:")
+    mrr_10 = calcular_mrr(g_truth, 10, bus_desc)
+    mrr_20 = calcular_mrr(g_truth, 20, bus_desc)
     print(f'MRR para n-10 : {mrr_10}')
     print(f'MRR para n-20 : {mrr_20}')
+
+    print("Testeando Fasttext con texto completo:")
+    mrr_10 = calcular_mrr(g_truth, 10, bus_fast)
+    mrr_20 = calcular_mrr(g_truth, 20, bus_fast)
+    print(f'MRR para n-10 : {mrr_10}')
+    print(f'MRR para n-20 : {mrr_20}')
+
+
 
 
 if __name__ == '__main__':
