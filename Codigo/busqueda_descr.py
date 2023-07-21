@@ -12,7 +12,7 @@ global umbral
 umbral = 0.01
 
 '''
-NOTA: Se intentaron metodos como LSA y cdist pero entregaron peores resultados que la muyltiplicacion dfe matrices
+NOTA: Se intentaron metodos como LSA y cdist pero entregaron peores resultados que la multiplicacion de matrices
 
 '''
 
@@ -30,8 +30,10 @@ def calcular_descriptores(vectorizer, texto, show = True):
 
     return descriptores
 
-def b_multiplicacion_matrices(nombres, descriptores, textos_consulta, descriptores_consulta, num):
-    # Se busca el más similar
+def b_multiplicacion_matrices(nombres, descriptores, textos_consulta, descriptores_consulta, num, show = False):
+    '''
+    Se busca el más similar mediante multiplicacion
+    '''
 
     t0 = time.time()
     descriptores_f1= descriptores.toarray()
@@ -39,12 +41,14 @@ def b_multiplicacion_matrices(nombres, descriptores, textos_consulta, descriptor
     similitudes = np.matmul(descriptores_consulta_f1, descriptores_f1.T)
     t1 = time.time()
     
-    print("Tiempo Busqueda Multiplicacion: {:.1f} segs".format(t1-t0), end='\n\n')
+    # Mostrar tiempo
+    if show:
+        print("Tiempo Busqueda Multiplicacion: {:.1f} segs".format(t1-t0), end='\n\n')
 
     values_dict = {}
 
     indices = np.argsort(-similitudes, axis=1)[:, :num]
-    values = np.take_along_axis(similitudes, indices, axis=1)
+    #values = np.take_along_axis(similitudes, indices, axis=1)
 
     for i in range(len(textos_consulta)):
         values_dict[textos_consulta[i]] = []
@@ -87,7 +91,8 @@ def obtener_indices_n_mayores(valores,nombres, n = 10):
     return [nombres[i] for i in indices_mayores]
 
 
-def main(textos_consulta, n):
+def main(descriptores, nombres, vectorizer, textos_consulta, n):
+    """
     vectorizer = TfidfVectorizer(
     lowercase = True,
     strip_accents = 'unicode',
@@ -99,7 +104,7 @@ def main(textos_consulta, n):
                   #  Si es int   -> cantidad de documentos
     min_df = 1   # Si aparece en menos, se ignora, misma idea de int y float
     )
-
+    """
     # Cambiar el directorio de trabajo al directorio de los textos completos
     script_path = os.path.abspath(__file__)
     script_dir = os.path.dirname(script_path)
@@ -107,7 +112,7 @@ def main(textos_consulta, n):
 
     texts_path = f'{previous_path}\Videos\Transcripciones\Transcripcion_completa'
     json_path = f'{previous_path}\Videos\Transcripciones\Transcripcion_json'
-
+    """
     txt_files = glob.glob(texts_path + "/*.txt")
 
     textos = []
@@ -129,7 +134,7 @@ def main(textos_consulta, n):
 
     ### Calculando descriptores
     descriptores = calcular_descriptores(vectorizer, textos)
-
+    """
     # Se calcula la matriz de descriptores para los textos de consulta (usando el vocabulario)
     descriptores_consulta = calcular_descriptores(vectorizer, textos_consulta)
 
@@ -157,7 +162,7 @@ if __name__ == '__main__':
     
     
     textos_consulta = [
-    'Similitud Coseno'
+    'Similitud Coseno',
     ]
 
 
