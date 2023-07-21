@@ -3,12 +3,14 @@ from unidecode import unidecode
 import fasttext
 import fasttext.util
 import os
+import pickle
 
 # Config
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
 os.chdir(script_dir)
 transcripts = f"{script_dir}/../Videos/Transcripciones/Transcripcion_completa"
+descriptors_file = f"{script_dir}/desc_fasttext.pkl"
 
 
 def buscar(texto_consulta: list, n: int, recalc=False) -> dict:
@@ -28,14 +30,23 @@ def buscar(texto_consulta: list, n: int, recalc=False) -> dict:
     vectors = {}
     results = {}
 
-    for filename in os.listdir(transcripts):
-        with open(os.path.join(transcripts, filename),
-                  "r", encoding="utf-8") as f:
-            f.readline()
-            f.readline()
-            text = unidecode(f.read()).lower()
-            video_id = filename.split(".txt")[0]
-            vectors[video_id] = model.get_sentence_vector(text)
+    if not recalc and os.path.exists(descriptors_file):
+        print("Cargando descriptores pre-calculados...")
+        with open(descriptors_file, "rb") as f:
+            vectors = pickle.load(f)  # nosec
+    else:
+        print("Calculando descriptores...")
+        for filename in os.listdir(transcripts):
+            with open(os.path.join(transcripts, filename),
+                      "r", encoding="utf-8") as f:
+                f.readline()
+                f.readline()
+                text = unidecode(f.read()).lower()
+                video_id = filename.split(".txt")[0]
+                vectors[video_id] = model.get_sentence_vector(text)
+
+        with open(descriptors_file, "wb") as f:
+            pickle.dump(vectors, f)
 
     for q in texto_consulta:
         query = unidecode(q.lower())

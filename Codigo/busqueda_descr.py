@@ -10,7 +10,7 @@ global umbral
 umbral = 0.01
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
-descriptors_file = f"{script_dir}/descriptors.pkl"
+descriptors_file = f"{script_dir}/desc_descr.pkl"
 
 '''
 NOTA: Se intentaron metodos como LSA y cdist pero
@@ -160,7 +160,7 @@ def buscar(textos_consulta: list, n: int, recalc=False) -> dict:
 
     # Carga los descriptores locales si ya existen
     # Si no existen, los calcula y guarda.
-    if os.path.exists(descriptors_file) and not recalc:
+    if not recalc and os.path.exists(descriptors_file):
         print("Cargando descriptores pre-calculados...")
         with open(descriptors_file, "rb") as f:
             nombres, descriptores, vectorizer = pickle.load(f)  # nosec
