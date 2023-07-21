@@ -1,7 +1,7 @@
 import os
 import pandas as pd
-import busqueda_descr as bus_desc
-import busqueda_fasttext as bus_fast
+import busqueda_descr as bd
+import busqueda_fasttext as bf
 
 
 def r_prec(ground_values: list[str], search_values: list[str], n=3):
@@ -23,18 +23,25 @@ def mrr(r_precisions: list[int]):
     return sum(r_precisions)/len(r_precisions)
 
 
-def calcular_mrr(g_truth: pd.DataFrame, n, buscador, show_individual=False):
-    '''
-    Calcula el Mean Reciprocal Rank
-    g_truth : matris ground
-    descriptores_lcoales : descriptores de los videos del profesor
-    vectorizer : vectorizer para calcular descriptores de las consultas
-    n : cantidad de valores n que retorno del bus_desc
-    '''
+def calcular_mrr(g_truth: pd.DataFrame, n: int, buscador: callable,
+                 descriptor: callable, show_individual=False) -> list:
+    """Calcula el Mean Reciprocal Rank
+
+    Args:
+        g_truth (pd.DataFrame): Matriz ground truth
+        n (int): Cantidad de resultados a retornar
+        buscador (callable): Funcion de busqueda
+        descriptor (callable): Funcion de calculo de descriptores
+        show_individual (bool, optional): Mostrar MRR de cada query.
+
+    Returns:
+        list: Lista de MRRs
+    """
+
     textos_consulta = g_truth['Query'].tolist()
 
     # Comparamos con busqueda_descr
-    result_busc_desc = buscador.buscar(textos_consulta, n, True)
+    result_busc_desc = buscador(textos_consulta, n, descriptor, True)
 
     r_precisions = []
     # Algunas métricas
@@ -70,18 +77,28 @@ def main():
             g_truth[columna] = g_truth[columna].str.strip()
 
     print("Testeando TF-IDF/Multiplicación de Matrices con texto completo:")
-    mrr_10 = calcular_mrr(g_truth, 10, bus_desc)
-    mrr_20 = calcular_mrr(g_truth, 20, bus_desc)
+    mrr_10 = calcular_mrr(g_truth, 10, bd.buscar, bd.descriptores_textos)
+    mrr_20 = calcular_mrr(g_truth, 20, bd.buscar, bd.descriptores_textos)
     print(f'MRR para n-10 : {mrr_10}')
     print(f'MRR para n-20 : {mrr_20}')
 
-    print("Testeando Fasttext con texto completo:")
-    mrr_10 = calcular_mrr(g_truth, 10, bus_fast)
-    mrr_20 = calcular_mrr(g_truth, 20, bus_fast)
+    print("\nTesteando TF-IDF/Multiplicación de Matrices con titulos:")
+    mrr_10 = calcular_mrr(g_truth, 10, bd.buscar, bd.descriptores_titulos)
+    mrr_20 = calcular_mrr(g_truth, 20, bd.buscar, bd.descriptores_titulos)
     print(f'MRR para n-10 : {mrr_10}')
     print(f'MRR para n-20 : {mrr_20}')
 
+    print("\nTesteando Fasttext con texto completo:")
+    mrr_10 = calcular_mrr(g_truth, 10, bf.buscar, bf.text_descriptor)
+    mrr_20 = calcular_mrr(g_truth, 20, bf.buscar, bf.text_descriptor)
+    print(f'MRR para n-10 : {mrr_10}')
+    print(f'MRR para n-20 : {mrr_20}')
 
+    print("\nTesteando Fasttext con titulos:")
+    mrr_10 = calcular_mrr(g_truth, 10, bf.buscar, bf.title_descriptor)
+    mrr_20 = calcular_mrr(g_truth, 20, bf.buscar, bf.title_descriptor)
+    print(f'MRR para n-10 : {mrr_10}')
+    print(f'MRR para n-20 : {mrr_20}')
 
 
 if __name__ == '__main__':

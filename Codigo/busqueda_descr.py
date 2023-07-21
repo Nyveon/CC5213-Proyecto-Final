@@ -5,9 +5,11 @@ import json
 import glob
 import pickle  # nosec
 from sklearn.feature_extraction.text import TfidfVectorizer
+from util import normalize
 
-global umbral
+
 umbral = 0.01
+buscador = "tfidf"
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
 descriptors_file = f"{script_dir}/desc_descr.pkl"
@@ -28,12 +30,20 @@ def calcular_descriptores(vectorizer, texto, show=True):
     descriptores = vectorizer.transform(texto)
     t1 = time.time()
     if show:
-        print("Tiempo descriptores: {:.1f} segs".format(t1-t0), end='\n\n')
+        print("Tiempo descriptores: {:.1f} segs".format(t1-t0))
 
     return descriptores
 
 
-def calcular_descriptores_local(show=True):
+def descriptores_textos():
+    return calcular_descriptores_local(False)
+
+
+def descriptores_titulos():
+    return calcular_descriptores_local(True)
+
+
+def calcular_descriptores_local(titulos, show=True):
     '''
     Funcion para calcular descriptores
     de los videos del profesor
@@ -56,15 +66,17 @@ def calcular_descriptores_local(show=True):
 
     txt_files = glob.glob(texts_path + "/*.txt")
 
-    textos = []
+    transcripciones = []
     nombres_completos = []
     nombres = []
     for file_ in txt_files:
         nombres.append(file_.split('\\')[-1].split('.txt')[0])
         with open(file_, 'r', encoding="utf-8") as file:
-            nombres_completos.append(file.readline().strip())
+            nombres_completos.append(normalize(file.readline()))
             file.readline()
-            textos.append(file.readline())
+            transcripciones.append(normalize(file.readline()))
+
+    textos = nombres_completos if titulos else transcripciones
 
     # Calcular el vocabulario
     t0 = time.time()
@@ -77,7 +89,7 @@ def calcular_descriptores_local(show=True):
     descriptores = vectorizer.transform(textos)
     t1 = time.time()
     if show:
-        print("Tiempo descriptores: {:.1f} segs".format(t1-t0), end='\n\n')
+        print("Tiempo descriptores: {:.1f} segs".format(t1-t0))
 
     return nombres, descriptores, vectorizer
 
@@ -96,8 +108,7 @@ def b_multiplicacion_matrices(nombres, descriptores, textos_consulta,
 
     # Mostrar tiempo
     if show:
-        print("Tiempo Busqueda Multiplicacion: {:.1f} segs".format(t1-t0),
-              end='\n\n')
+        print("Tiempo Busqueda Multiplicacion: {:.1f} segs".format(t1-t0))
 
     values_dict = {}
 
@@ -146,29 +157,37 @@ def obtener_indices_n_mayores(valores, nombres, n=10):
     return [nombres[i] for i in indices_mayores]
 
 
-def buscar(textos_consulta: list, n: int, recalc=False) -> dict:
+def load_descriptors(recalc, f_descriptor):
+    file = f"{script_dir}/{buscador}_{f_descriptor.__name__}.pkl"
+
+    if not recalc and os.path.exists(file):
+        print("Cargando descriptores pre-calculados...")
+        with open(file, "rb") as f:
+            nombres, descriptores, vectorizer = pickle.load(f)  # nosec
+    else:
+        print("Calculando descriptores...")
+        nombres, descriptores, vectorizer = f_descriptor()
+        with open(file, "wb") as f:
+            pickle.dump((nombres, descriptores, vectorizer), f)
+
+    return nombres, descriptores, vectorizer
+
+
+def buscar(textos_consulta: list, n: int, f_descriptor: callable,
+           recalc=False) -> dict:
     """Busca los n videos más similares a cada consulta
 
     Args:
         texto_consulta (list): lista de queries
         n (int): numero de resultados por query
+        f_descriptor (f(str) -> list): Funcion de calculo de descriptores
         recalc (bool, optional): Obligar recalculo de descriptores.
 
     Returns:
         dict: {query: [video_id1, video_id2, ...]}
     """
 
-    # Carga los descriptores locales si ya existen
-    # Si no existen, los calcula y guarda.
-    if not recalc and os.path.exists(descriptors_file):
-        print("Cargando descriptores pre-calculados...")
-        with open(descriptors_file, "rb") as f:
-            nombres, descriptores, vectorizer = pickle.load(f)  # nosec
-    else:
-        print("Calculando descriptores...")
-        nombres, descriptores, vectorizer = calcular_descriptores_local()
-        with open(descriptors_file, "wb") as f:
-            pickle.dump((nombres, descriptores, vectorizer), f)
+    nombres, descriptores, vectorizer = load_descriptors(recalc, f_descriptor)
 
     # Se calcula la matriz de descriptores para los textos de consulta
     json_path = f'{script_dir}/../Videos/Transcripciones/Transcripcion_json'
@@ -197,4 +216,4 @@ if __name__ == '__main__':
         'Similitud Coseno',
     ]
 
-    print(buscar(textos_consulta, 3))
+    print(buscar(textos_consulta, 3, calcular_descriptores_local))
