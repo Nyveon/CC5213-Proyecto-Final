@@ -24,7 +24,7 @@ def load_videos():
     """
     Carga todos los videos a objetos para poder ser usados en la aplicación
     """
-    videos = []
+    videos = {}
     script_dir = os.path.dirname(os.path.abspath(__file__))
     video_dir = f"{script_dir}/../{transcript_path}"
     for filename in os.listdir(video_dir):
@@ -33,7 +33,7 @@ def load_videos():
             title = f.readline()
             url = f.readline()
             video_id = ".".join(filename.split(".")[:-1])
-            videos.append(Video(title, url, video_id))
+            videos[video_id] = Video(title, url, video_id)
     return videos
 
 
@@ -54,15 +54,10 @@ def main():
         if query is not None:
             search_result = busqueda_descr.buscar(
                 [query], 3, busqueda_descr.descriptores_textos)
-
             print(search_result)
 
-            # Find the videos that match the search result
-            for video in videos:
-                # todo: change this to hashmap
-                print(video.video_id)
-                if video.video_id in search_result[query]:
-                    filtered_list.append(video)
+            for result in search_result[query]:
+                filtered_list.append(videos[result])
 
         return render_template('index.html', videos=filtered_list, query=query)
 
