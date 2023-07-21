@@ -1,54 +1,53 @@
 import numpy as np
 import time
-from sklearn.feature_extraction.text import TfidfVectorizer
 import os
-import glob
-from scipy.spatial import distance
-from sklearn.decomposition import TruncatedSVD
-from numpy.linalg import svd
 import json
 
 global umbral
 umbral = 0.01
 
 '''
-NOTA: Se intentaron metodos como LSA y cdist pero entregaron peores resultados que la multiplicacion de matrices
-
+NOTA: Se intentaron metodos como LSA y cdist pero
+entregaron peores resultados que la multiplicacion de matrices.
 '''
 
-def calcular_descriptores(vectorizer, texto, show = True):
+
+def calcular_descriptores(vectorizer, texto, show=True):
     '''
     Funcion para calcular descriptores
     entrega el tiempo de computo
     '''
-    ### Calculando descriptores
+    # Calculando descriptores
     t0 = time.time()
     descriptores = vectorizer.transform(texto)
     t1 = time.time()
     if show:
-        print("Tiempo descriptores: {:.1f} segs".format(t1-t0), end = '\n\n')
+        print("Tiempo descriptores: {:.1f} segs".format(t1-t0), end='\n\n')
 
     return descriptores
 
-def b_multiplicacion_matrices(nombres, descriptores, textos_consulta, descriptores_consulta, num, show = False):
+
+def b_multiplicacion_matrices(nombres, descriptores, textos_consulta,
+                              descriptores_consulta, num, show=False):
     '''
     Se busca el más similar mediante multiplicacion
     '''
 
     t0 = time.time()
-    descriptores_f1= descriptores.toarray()
+    descriptores_f1 = descriptores.toarray()
     descriptores_consulta_f1 = descriptores_consulta.toarray()
     similitudes = np.matmul(descriptores_consulta_f1, descriptores_f1.T)
     t1 = time.time()
-    
+
     # Mostrar tiempo
     if show:
-        print("Tiempo Busqueda Multiplicacion: {:.1f} segs".format(t1-t0), end='\n\n')
+        print("Tiempo Busqueda Multiplicacion: {:.1f} segs".format(t1-t0),
+              end='\n\n')
 
     values_dict = {}
 
     indices = np.argsort(-similitudes, axis=1)[:, :num]
-    #values = np.take_along_axis(similitudes, indices, axis=1)
+    # values = np.take_along_axis(similitudes, indices, axis=1)
 
     for i in range(len(textos_consulta)):
         values_dict[textos_consulta[i]] = []
@@ -62,8 +61,8 @@ def comparar_segmentos(vectorizer, json_name, query):
     '''
     Se compara cada segmento del video con la consulta,
     Se entrega un valor que sirve para calcular importancia
-    ''' 
-    json_data= []
+    '''
+    json_data = []
     with open(json_name, encoding='utf-8') as file:
         file.readline()
         file.readline()
@@ -83,9 +82,10 @@ def comparar_segmentos(vectorizer, json_name, query):
     return count/len(json_data)
 
 
-def obtener_indices_n_mayores(valores,nombres, n = 10):
+def obtener_indices_n_mayores(valores, nombres, n=10):
     indices_valores = list(enumerate(valores))
-    indices_valores_ordenados = sorted(indices_valores, key=lambda x: x[1], reverse=True)
+    indices_valores_ordenados = sorted(indices_valores,
+                                       key=lambda x: x[1], reverse=True)
     indices_mayores = [indice for indice, _ in indices_valores_ordenados[:n]]
 
     return [nombres[i] for i in indices_mayores]
@@ -99,9 +99,10 @@ def main(descriptores, nombres, vectorizer, textos_consulta, n):
     sublinear_tf = True,
     norm = 'l2',
     ngram_range = (1,1), # Probar distintos valores
-    max_df = 1.0, # Si una palabra aparece en más que max_df documentos, se ignora
-                  #  Si es float -> porcentaje del total de documentos
-                  #  Si es int   -> cantidad de documentos
+    max_df = 1.0,
+    # Si una palabra aparece en más que max_df documentos, se ignora
+    #  Si es float -> porcentaje del total de documentos
+    #  Si es int   -> cantidad de documentos
     min_df = 1   # Si aparece en menos, se ignora, misma idea de int y float
     )
     """
@@ -110,8 +111,7 @@ def main(descriptores, nombres, vectorizer, textos_consulta, n):
     script_dir = os.path.dirname(script_path)
     previous_path = os.path.dirname(script_dir)
 
-    texts_path = f'{previous_path}\Videos\Transcripciones\Transcripcion_completa'
-    json_path = f'{previous_path}\Videos\Transcripciones\Transcripcion_json'
+    json_path = f'{previous_path}/Videos/Transcripciones/Transcripcion_json'
     """
     txt_files = glob.glob(texts_path + "/*.txt")
 
@@ -123,7 +123,7 @@ def main(descriptores, nombres, vectorizer, textos_consulta, n):
         with open(file_, 'r', encoding="utf-8") as file:
             nombres_completos.append(file.readline().strip())
             file.readline()
-            
+
             textos.append(file.readline())
 
     # Calcular el vocabulario
@@ -135,10 +135,13 @@ def main(descriptores, nombres, vectorizer, textos_consulta, n):
     ### Calculando descriptores
     descriptores = calcular_descriptores(vectorizer, textos)
     """
-    # Se calcula la matriz de descriptores para los textos de consulta (usando el vocabulario)
+    # Se calcula la matriz de descriptores para los textos de consulta
+    # (usando el vocabulario)
     descriptores_consulta = calcular_descriptores(vectorizer, textos_consulta)
 
-    similitudes = b_multiplicacion_matrices(nombres, descriptores, textos_consulta, descriptores_consulta, 20)
+    similitudes = b_multiplicacion_matrices(
+        nombres, descriptores,
+        textos_consulta, descriptores_consulta, 20)
 
     # Diccionario que se retorna, tiene la forma
     # query : [val1, val2, val3]
@@ -146,7 +149,7 @@ def main(descriptores, nombres, vectorizer, textos_consulta, n):
 
     # Iteramos sobre similitudes para buscar sacar los mas parecidos del top10
     for key, value in similitudes.items():
-        l_top = [f'{json_path}\{x}.json' for x in value]
+        l_top = [f'{json_path}/{x}.json' for x in value]
         # Se muestra el top 10.
         counts = []
         # Se itera sobre la lista de top-10 para ordenarlas segun importancia
@@ -154,16 +157,13 @@ def main(descriptores, nombres, vectorizer, textos_consulta, n):
             counts.append(comparar_segmentos(vectorizer, video, key))
 
         d_return[key] = obtener_indices_n_mayores(counts, value, n)
-    
+
     return d_return
 
 
 if __name__ == '__main__':
-    
-    
     textos_consulta = [
-    'Similitud Coseno',
+        'Similitud Coseno',
     ]
-
 
     main(textos_consulta)
