@@ -28,8 +28,8 @@ model_names = {
 try:
     device = torch.device("cuda")
 except Exception:
-    print("No se ha encontrado GPU, usando CPU (Será MUY lento!)")
-    device = torch.device("cpu")
+    print("No se ha encontrado GPU/CUDA, cerrando programa.")
+    sys.exit(1)
 
 
 def load_model(f_descriptor: callable) -> SentenceTransformer:
@@ -118,11 +118,10 @@ def load_descriptors(recalc: bool,
     file = f"{script_dir}/{buscador}_{f_descriptor.__name__}.pkl"
 
     if not recalc and os.path.exists(file):
-        print("Cargando descriptores pre-calculados...")
         with open(file, "rb") as f:
             return pickle.load(f)  # nosec
 
-    print("Calculando descriptores...")
+    print("Calculando descriptores por primera vez.")
     vectors = {}
 
     for filename in os.listdir(transcripts):

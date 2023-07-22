@@ -177,11 +177,10 @@ def load_descriptors(recalc: bool, f_descriptor: callable) -> Union[
     file = f"{script_dir}/{buscador}_{f_descriptor.__name__}.pkl"
 
     if not recalc and os.path.exists(file):
-        print("Cargando descriptores pre-calculados...")
         with open(file, "rb") as f:
             nombres, descriptores, vectorizer = pickle.load(f)  # nosec
     else:
-        print("Calculando descriptores...")
+        print("Calculando descriptores por primera vez.")
         nombres, descriptores, vectorizer = f_descriptor()
         with open(file, "wb") as f:
             pickle.dump((nombres, descriptores, vectorizer), f)

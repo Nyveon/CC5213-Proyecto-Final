@@ -1,13 +1,11 @@
-from flask import Flask, render_template, request
-import busqueda_descr
-import busqueda_fasttext
-import busqueda_sbert
+import models.busqueda_tfidf as tfidf
+import models.busqueda_fasttext as fasttext
+import models.busqueda_sbert as sbert
 import webview
 import os
 
-
-# Config
-transcript_path = "Videos/Transcripciones/Transcripcion_completa"
+from flask import Flask, render_template, request
+from util import transcripts
 
 
 class Video:
@@ -27,10 +25,9 @@ def load_videos():
     Carga todos los videos a objetos para poder ser usados en la aplicación
     """
     videos = {}
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    video_dir = f"{script_dir}/../{transcript_path}"
-    for filename in os.listdir(video_dir):
-        with open(os.path.join(video_dir, filename),
+
+    for filename in os.listdir(transcripts):
+        with open(os.path.join(transcripts, filename),
                   "r", encoding="utf-8") as f:
             title = f.readline()
             url = f.readline()
@@ -41,19 +38,19 @@ def load_videos():
 
 buscadores = {
     "TF-IDF Textos": (
-        busqueda_descr, busqueda_descr.descriptores_textos),
+        tfidf, tfidf.text_descriptor),
     "TF-IDF Títulos": (
-        busqueda_descr, busqueda_descr.descriptores_titulos),
+        tfidf, tfidf.title_descriptor),
     "Fasttext Textos": (
-        busqueda_fasttext, busqueda_fasttext.text_descriptor),
+        fasttext, fasttext.text_descriptor),
     "Fasttext Fragmentos": (
-        busqueda_fasttext, busqueda_fasttext.sentence_descriptor),
+        fasttext, fasttext.sentence_descriptor),
     "Fasttext Títulos": (
-        busqueda_fasttext, busqueda_fasttext.title_descriptor),
+        fasttext, fasttext.title_descriptor),
     "S-BERT MPNet": (
-        busqueda_sbert, busqueda_sbert.pm_mpnet_descriptor),
+        sbert, sbert.pm_mpnet_descriptor),
     "S-BERT DistilRoberta": (
-        busqueda_sbert, busqueda_sbert.distilroberta_descriptor),
+        sbert, sbert.distilroberta_descriptor),
 }
 
 
@@ -63,7 +60,6 @@ def main():
     """
 
     videos = load_videos()
-
     app = Flask(__name__)
 
     @app.route('/', methods=['GET'])
