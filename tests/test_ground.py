@@ -1,13 +1,28 @@
 import os
 import pandas as pd
-import busqueda_descr as bd
-import busqueda_fasttext as bf
+import sys
+
+sys.path.append("..")
+import models.busqueda_tfidf as bd     # noqa: E402
+import models.busqueda_fasttext as bf  # noqa: E402
+import models.busqueda_sbert as bs     # noqa: E402
 
 
-def r_prec(ground_values: list[str], search_values: list[str], n=3):
-    '''
-    dividendo entre los n primeros valores (correctos) y n
-    '''
+script_path = os.path.abspath(__file__)
+script_dir = os.path.dirname(script_path)
+
+
+def r_prec(ground_values: list[str], search_values: list[str], n=3) -> float:
+    """Calcula el R-Precision
+
+    Args:
+        ground_values (list[str]): Valores correctos
+        search_values (list[str]): Valores buscados
+        n (int, optional): Cantidad de valores correctos. Defaults to 3.
+
+    Returns:
+        float: R-Precision
+    """
     n_prim = 0
     for value in search_values:
         if value in ground_values:
@@ -16,11 +31,17 @@ def r_prec(ground_values: list[str], search_values: list[str], n=3):
     return n_prim/n
 
 
-def mrr(r_precisions: list[int]):
-    '''
-    promedio de las r_precisions
-    '''
-    return sum(r_precisions)/len(r_precisions)
+def mrr(r_precisions: list[int]) -> float:
+    """Calcula el Mean Reciprocal Rank
+
+    Args:
+        r_precisions (list[int]): Lista de R-Precisions
+
+    Returns:
+        float: MRR
+    """
+
+    return sum(r_precisions) / len(r_precisions)
 
 
 def calcular_mrr(g_truth: pd.DataFrame, n: int, buscador: callable,
@@ -37,14 +58,10 @@ def calcular_mrr(g_truth: pd.DataFrame, n: int, buscador: callable,
     Returns:
         list: Lista de MRRs
     """
-
     textos_consulta = g_truth['Query'].tolist()
-
-    # Comparamos con busqueda_descr
     result_busc_desc = buscador(textos_consulta, n, descriptor)
-
     r_precisions = []
-    # Algunas métricas
+
     for key in result_busc_desc.keys():
         resultados = result_busc_desc[key]
 
@@ -60,10 +77,17 @@ def calcular_mrr(g_truth: pd.DataFrame, n: int, buscador: callable,
     return mrr(r_precisions)
 
 
-def average_precision(ground_values: list[str], search_values: list[str]):
-    '''
-    Calculate the average precision of search_values
-    '''
+def average_precision(ground_values: list[str],
+                      search_values: list[str]) -> float:
+    """Calcula el Average Precision
+
+    Args:
+        ground_values (list[str]): Valores correctos
+        search_values (list[str]): Valores buscados
+
+    Returns:
+        float: AP
+    """
     scores = 0
     num_hits = 0
     for i, value in enumerate(search_values):
@@ -73,10 +97,15 @@ def average_precision(ground_values: list[str], search_values: list[str]):
     return scores / min(len(ground_values), len(search_values))
 
 
-def m_ap(average_precisions: list[float]):
-    '''
-    Calculate the mean of the average precisions
-    '''
+def m_ap(average_precisions: list[float]) -> float:
+    """Calcula el Mean Average Precision
+
+    Args:
+        average_precisions (list[float]): Lista de APs
+
+    Returns:
+        float: MAP
+    """
     return sum(average_precisions) / len(average_precisions)
 
 
@@ -94,14 +123,10 @@ def calcular_map(g_truth: pd.DataFrame, n: int, buscador: callable,
     Returns:
         list: List of MAPs
     """
-
     textos_consulta = g_truth['Query'].tolist()
-
-    # Compare with busqueda_descr
     result_busc_desc = buscador(textos_consulta, n, descriptor)
-
     average_precisions = []
-    # Some metrics
+
     for key in result_busc_desc.keys():
         resultados = result_busc_desc[key]
 
@@ -117,7 +142,15 @@ def calcular_map(g_truth: pd.DataFrame, n: int, buscador: callable,
     return m_ap(average_precisions)
 
 
-def bateria_test(g_truth, modulo_buscador, f_descriptor):
+def bateria_test(g_truth: pd.DataFrame, modulo_buscador: callable,
+                 f_descriptor: callable) -> None:
+    """Corre una bateria de tests para un buscador y descriptor
+
+    Args:
+        g_truth (pd.DataFrame): Matriz ground truth
+        modulo_buscador (callable): Modulo de busqueda
+        f_descriptor (callable): Funcion de calculo de descriptores
+    """
     print((f"\nTesteando buscador {modulo_buscador.__name__}"
            f" usando {f_descriptor.__name__}"))
     mrr10 = calcular_mrr(g_truth, 10, modulo_buscador.buscar, f_descriptor)
@@ -130,26 +163,22 @@ def bateria_test(g_truth, modulo_buscador, f_descriptor):
     print(f'MAP para n-20 : {map20}')
 
 
-def main():
-    script_path = os.path.abspath(__file__)
-    script_dir = os.path.dirname(script_path)
-
-    # Cargamos los datos de ground_truth
+def main() -> None:
+    """Corre los tests con los ground truths
+    """
     g_truth = pd.read_csv(f"{script_dir}/ground_truth.csv",
                           encoding='utf-8', delimiter=';', dtype=str)
 
-    # Eliminamos los espacios en blanco del dataframe XD (gracias ChatGPT)
-    # Iterar a través de todas las columnas del DataFrame
     for columna in g_truth.columns:
-        # Verificar si la columna contiene g_truth de tipo cadena (strings)
         if g_truth[columna].dtype == 'object':
-            # Eliminar los espacios en blanco de los strings
             g_truth[columna] = g_truth[columna].str.strip()
 
-    bateria_test(g_truth, bd, bd.descriptores_textos)
-    bateria_test(g_truth, bd, bd.descriptores_titulos)
+    bateria_test(g_truth, bd, bd.text_descriptor)
+    bateria_test(g_truth, bd, bd.title_descriptor)
     bateria_test(g_truth, bf, bf.text_descriptor)
     bateria_test(g_truth, bf, bf.title_descriptor)
+    bateria_test(g_truth, bs, bs.pm_mpnet_descriptor)
+    bateria_test(g_truth, bs, bs.distilroberta_descriptor)
 
 
 if __name__ == '__main__':
