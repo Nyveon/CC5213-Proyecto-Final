@@ -1,30 +1,45 @@
+"""
+Buscador de videos por similitud de texto
+Usando modelos pre-entrenados de S-BERT y similitud coseno.
+"""
+
 import os
 import json
 import pickle  # nosec
 import scipy.spatial
 import torch
+import sys
 
 from sentence_transformers import SentenceTransformer
-from util import normalize
-from typing import Callable
+from typing import Callable, Dict, List
+sys.path.append("..")
+from util import normalize, transcripts, transcripts_json  # noqa: E402
+
 
 buscador = "sbert"
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
-os.chdir(script_dir)
-transcripts = f"{script_dir}/../Videos/Transcripciones/Transcripcion_completa"
-transcripts_json = f"{script_dir}/../Videos/Transcripciones/Transcripcion_json"
-
-device = torch.device("cuda")
 models = {}
 model_names = {
     "pm_mpnet_descriptor": "paraphrase-multilingual-mpnet-base-v2",
     "distilroberta_descriptor": "all-distilroberta-v1",
 }
 
+try:
+    device = torch.device("cuda")
+except Exception:
+    print("No se ha encontrado GPU, usando CPU (Será MUY lento!)")
+    device = torch.device("cpu")
 
-def load_model(f_descriptor: callable):
-    """Carga el modelo de fasttext si no está cargado
+
+def load_model(f_descriptor: callable) -> SentenceTransformer:
+    """Carga el modelo de S-BERT si no está cargado
+
+    Args:
+        f_descriptor (callable): Funcion de calculo de descriptores
+
+    Returns:
+        SentenceTransformer: Modelo de S-BERT
     """
     global models
 
@@ -37,17 +52,43 @@ def load_model(f_descriptor: callable):
 
 
 def pm_mpnet_descriptor(filename: str) -> list:
+    """Calcula descriptores de fragmentos de video usando S-BERT
+    con el modelo paraphrase-multilingual-mpnet-base-v2
+
+    Args:
+        filename (str): Nombre del archivo de transcripcion
+
+    Returns:
+        list:  Descriptores de fragmentos de video
+    """
     model = load_model(pm_mpnet_descriptor)
     return sentence_descriptor(filename, model)
 
 
 def distilroberta_descriptor(filename: str) -> list:
+    """Calcula descriptores de fragmentos de video usando S-BERT
+    con el modelo all-distilroberta-v1
+
+    Args:
+        filename (str): Nombre del archivo de transcripcion
+
+    Returns:
+        list: Descriptores de fragmentos de video
+    """
     model = load_model(distilroberta_descriptor)
     return sentence_descriptor(filename, model)
 
 
-def sentence_descriptor(filename: str, model) -> list:
-    print(filename)
+def sentence_descriptor(filename: str, model: SentenceTransformer) -> list:
+    """Calcula descriptores de fragmentos de video usando S-BERT
+
+    Args:
+        filename (str): Nombre del archivo de transcripcion
+        model (SentenceTransformer): Modelo de S-BERT
+
+    Returns:
+        list: Descriptores de fragmentos de video
+    """
     descriptors = []
     filename = filename.split(".txt")[0] + ".json"
     with open(os.path.join(transcripts_json, filename),
@@ -95,7 +136,7 @@ def load_descriptors(recalc: bool,
 
 
 def buscar(texto_consulta: list, n: int, f_descriptor: Callable[[str], list],
-           recalc=False) -> dict:
+           recalc=False) -> Dict[str, List[str]]:
     """Busca los n videos más similares a cada query usando fasttext
     Espacio de busqueda: Transcripciones completas
 
@@ -106,10 +147,9 @@ def buscar(texto_consulta: list, n: int, f_descriptor: Callable[[str], list],
         f_descriptor (f(str) -> list): Funcion de calculo de descriptores
 
     Returns:
-        dict: {query: [video_id1, video_id2, ...]}
+        Dict[str, List[str]]: {query: [video_id1, video_id2, ...]}
     """
     vectors = load_descriptors(recalc, f_descriptor)
-
     model = load_model(f_descriptor)
 
     results = {}
@@ -137,6 +177,7 @@ def buscar(texto_consulta: list, n: int, f_descriptor: Callable[[str], list],
 
 
 if __name__ == "__main__":
+    # Debug, este modulo debe ser importado
     consulta = [
         "Similitud Coseno",
         "Errores en codificación MPEG-1",

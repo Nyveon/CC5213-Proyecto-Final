@@ -1,3 +1,8 @@
+"""
+Buscador de videos por similitud de texto
+Usando Fasttext y similitud coseno.
+"""
+
 import scipy.spatial
 import fasttext
 import fasttext.util
@@ -6,35 +11,46 @@ import pickle  # nosec
 import matplotlib.pyplot as plt
 import numpy as np
 import json
+import sys
 
 from sklearn.manifold import TSNE
-from typing import Callable
-from util import normalize
+from typing import Callable, Dict, List
 
-# Config
+sys.path.append("..")
+from util import normalize, transcripts, transcripts_json  # noqa: E402
+
+
 buscador = "fasttext"
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
-os.chdir(script_dir)
-transcripts = f"{script_dir}/../Videos/Transcripciones/Transcripcion_completa"
-transcripts_json = f"{script_dir}/../Videos/Transcripciones/Transcripcion_json"
 
 model = None
 
 
-def load_model():
-    """Carga el modelo de fasttext si no está cargado
+def load_model() -> None:
+    """Carga el modelo de Fasttext si no está cargado
     """
     global model
 
     if model is None:
+        current_wd = os.getcwd()
+        os.chdir(script_dir)
         fasttext.util.download_model("es", if_exists="ignore")
         fasttext_model_path = "cc.es.300.bin"
         model = fasttext.load_model(
             os.path.join(script_dir, fasttext_model_path))
+        os.chdir(current_wd)
 
 
 def sentence_descriptor(filename: str) -> list:
+    """Función Descriptor. Extrae descriptores de fragmentos de video.
+
+    Args:
+        filename (str): Archivo de transcripción
+
+    Returns:
+        list: Vector descriptor
+    """
     descriptors = []
     filename = filename.split(".txt")[0] + ".json"
     with open(os.path.join(transcripts_json, filename),
@@ -51,7 +67,7 @@ def sentence_descriptor(filename: str) -> list:
 
 
 def text_descriptor(filename: str) -> list:
-    """Función Descriptor. Extrae descriptores la transcripción.
+    """Función Descriptor. Extrae descriptores de la transcripción completa.
 
     Args:
         filename (str): Archivo de transcripción
@@ -118,7 +134,7 @@ def load_descriptors(recalc: bool,
 
 
 def buscar(texto_consulta: list, n: int, f_descriptor: Callable[[str], list],
-           recalc=False) -> dict:
+           recalc=False) -> Dict[str, List[str]]:
     """Busca los n videos más similares a cada query usando fasttext
     Espacio de busqueda: Transcripciones completas
 
@@ -129,11 +145,10 @@ def buscar(texto_consulta: list, n: int, f_descriptor: Callable[[str], list],
         f_descriptor (f(str) -> list): Funcion de calculo de descriptores
 
     Returns:
-        dict: {query: [video_id1, video_id2, ...]}
+        Dict[str, List[str]]: {query: [video_id1, video_id2, ...]}
     """
     load_model()
     vectors = load_descriptors(recalc, f_descriptor)
-    # visualize(vectors)
 
     results = {}
 
@@ -162,29 +177,24 @@ def buscar(texto_consulta: list, n: int, f_descriptor: Callable[[str], list],
     return results
 
 
-def visualize(vectors):
-    """Visualize the vectors in 2D space.
+def visualize(vectors: dict) -> None:
+    """Visualiza los vectores en espacio 2D
 
     Args:
-        vectors (dict): The vectors to visualize.
+        vectors (dict): {video_id: vector}
     """
-    # Convert the vectors to a 2D numpy array
+
     vectors_list = np.array(list(vectors.values()))
     video_ids = list(vectors.keys())
 
-    # Extract the first two characters from each video ID and get unique ones
     labels = [vid[:2] for vid in video_ids]
     unique_labels = list(set(labels))
 
-    # Map each unique label to a color
     colormap = plt.colormaps.get_cmap('tab20')
     color_dict = {label: colormap(i) for i, label in enumerate(unique_labels)}
 
-    # Use t-SNE to reduce the vectors to two dimensions
     tsne = TSNE(n_components=2, random_state=0)
     vectors_2d = tsne.fit_transform(vectors_list)
-
-    # Create a scatter plot of the 2D vectors
     plt.figure(figsize=(10, 10))
 
     for i, video_id in enumerate(video_ids):
@@ -192,7 +202,6 @@ def visualize(vectors):
                     color=color_dict[labels[i]])
         plt.annotate(video_id, (vectors_2d[i, 0], vectors_2d[i, 1]))
 
-    # Create a legend
     patches = [plt.Line2D(
         [0], [0], marker='o', color='w', label=label,
         markerfacecolor=color,
@@ -203,11 +212,12 @@ def visualize(vectors):
 
 
 if __name__ == "__main__":
+    # Debug, este modulo debe ser importado
     consulta = [
         "Similitud Coseno",
         "Errores en codificación MPEG-1",
         "Busqueda eficiente con R-trees",
         "Unigramas, bigramas y trigramas",
     ]
-    # print(buscar(consulta, 3, sentence_descriptor))
+    print(buscar(consulta, 3, sentence_descriptor))
     visualize(load_descriptors(False, text_descriptor))
