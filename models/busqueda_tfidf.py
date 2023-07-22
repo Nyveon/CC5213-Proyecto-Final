@@ -9,18 +9,23 @@ import json
 import glob
 import pickle  # nosec
 import sys
+import spacy
 
+from nltk.stem import SnowballStemmer
 from typing import Union, Dict, List
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 sys.path.append("..")
 from util import normalize, transcripts, transcripts_json  # noqa: E402
 
-
 buscador = "tfidf"
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
 umbral = 0.01
+
+
+stemmer = SnowballStemmer('spanish')
+nlp = spacy.load('es_core_news_sm')
 
 
 def text_descriptor() -> Union[list, list, TfidfVectorizer]:
@@ -41,7 +46,69 @@ def title_descriptor() -> Union[list, list, TfidfVectorizer]:
     return calcular_descriptores_local(True)
 
 
-def calcular_descriptores_local(titulos: bool) -> Union[
+def stem_text(text: str) -> str:
+    """Stemming de texto en español
+
+    Args:
+        text (str): Texto a stemmizar
+
+    Returns:
+        str: Texto stemmizado
+    """
+    return ' '.join([stemmer.stem(w) for w in text.split()])
+
+
+def lemmatize_text(text: str) -> str:
+    """Lemmatizacion de texto en español
+
+    Args:
+        text (str): Texto a lemmatizar
+
+    Returns:
+        str: Texto lemmatizado
+    """
+    doc = nlp(text)
+    return ' '.join([token.lemma_ for token in doc])
+
+
+def title_descriptor_stem() -> Union[list, list, TfidfVectorizer]:
+    """Descriptores de titulos de videos stemmizados
+
+    Returns:
+        Union[list, list, TfidfVectorizer]: Nombres, descriptores y vectorizer
+    """
+    return calcular_descriptores_local(True, stem_text)
+
+
+def text_descriptor_stem() -> Union[list, list, TfidfVectorizer]:
+    """Descriptores de transcripciones completas stemmizadas
+
+    Returns:
+        Union[list, list, TfidfVectorizer]: Nombres, descriptores y vectorizer
+    """
+    return calcular_descriptores_local(False, stem_text)
+
+
+def title_descriptor_lem() -> Union[list, list, TfidfVectorizer]:
+    """Descriptores de titulos de videos lemmatizados
+
+    Returns:
+        Union[list, list, TfidfVectorizer]: Nombres, descriptores y vectorizer
+    """
+    return calcular_descriptores_local(True, lemmatize_text)
+
+
+def text_descriptor_lem() -> Union[list, list, TfidfVectorizer]:
+    """Descriptores de transcripciones completas lemmatizadas
+
+    Returns:
+        Union[list, list, TfidfVectorizer]: Nombres, descriptores y vectorizer
+    """
+    return calcular_descriptores_local(False, lemmatize_text)
+
+
+def calcular_descriptores_local(titulos: bool,
+                                preprocessor: callable = None) -> Union[
                                 list, list, TfidfVectorizer]:
     """Calcula descriptores TF-IDF (offline)
 
@@ -52,6 +119,7 @@ def calcular_descriptores_local(titulos: bool) -> Union[
         Union[list, list, TfidfVectorizer]: Nombres, descriptores y vectorizer
     """
     vectorizer = TfidfVectorizer(
+        preprocessor=preprocessor,
         lowercase=True,
         strip_accents='unicode',
         sublinear_tf=True,

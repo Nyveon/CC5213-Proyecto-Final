@@ -129,6 +129,12 @@ def main() -> None:
         data_ground, 10, bd.buscar, bd.text_descriptor)
     bd_titulo = grf_recall_prec(
         data_ground, 10, bd.buscar, bd.title_descriptor)
+    bd_titulo_stem = grf_recall_prec(
+        data_ground, 10, bd.buscar, bd.title_descriptor_stem)
+    bd_texto_stem = grf_recall_prec(
+        data_ground, 10, bd.buscar, bd.text_descriptor_stem)
+    bd_titulo_lem = grf_recall_prec(
+        data_ground, 10, bd.buscar, bd.title_descriptor_lem)
     bf_texto = grf_recall_prec(
         data_ground, 10, bf.buscar, bf.text_descriptor)
     bf_titulo = grf_recall_prec(
@@ -145,6 +151,12 @@ def main() -> None:
              linestyle='-', label='bd_texto n = 25')
     plt.plot(ejex, bd_titulo, marker='o',
              linestyle='-', label='bd_titulo n= 25')
+    plt.plot(ejex, bd_titulo_stem, marker='o',
+             linestyle='-', label='bd_titulo_stem n = 25')
+    plt.plot(ejex, bd_titulo_lem, marker='o',
+             linestyle='-', label='bd_titulo_lem n = 25')
+    plt.plot(ejex, bd_texto_stem, marker='o',
+             linestyle='-', label='bd_texto_stem n = 25')
     plt.plot(ejex, bf_texto, marker='o',
              linestyle='-', label='bf_texto n = 25')
     plt.plot(ejex, bf_titulo, marker='o',
