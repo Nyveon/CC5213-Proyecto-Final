@@ -13,7 +13,7 @@ import models.busqueda_sbert as bs     # noqa: E402
 
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
-mini_ground_file = f"{script_dir}/mini_ground.txt"
+mini_ground_file = f"{script_dir}/mini_ground.csv"
 
 
 def calc_recall_prec(ground_values: list, s_values: list) -> Tuple[list, list]:
