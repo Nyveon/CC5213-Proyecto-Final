@@ -3,7 +3,7 @@ import pandas as pd
 import busqueda_descr as bd
 import busqueda_fasttext as bf
 import matplotlib.pyplot as plt
-
+import busqueda_sbert as sb
 
 
 def calc_recall_prec(ground_values, s_values):
@@ -129,10 +129,13 @@ def main():
 
             data_ground[key] = [x.strip() for x in values]
 
-    bd_texto = grf_recall_prec(data_ground, 25, bd.buscar, bd.descriptores_textos)
-    bd_titulo = grf_recall_prec(data_ground, 25, bd.buscar, bd.descriptores_titulos)
-    bf_texto = grf_recall_prec(data_ground, 25, bf.buscar, bf.text_descriptor)
-    bf_titulo = grf_recall_prec(data_ground, 25, bf.buscar, bf.title_descriptor)
+    bd_texto = grf_recall_prec(data_ground, 10, bd.buscar, bd.descriptores_textos)
+    bd_titulo = grf_recall_prec(data_ground, 10, bd.buscar, bd.descriptores_titulos)
+    bf_texto = grf_recall_prec(data_ground, 10, bf.buscar, bf.text_descriptor)
+    bf_titulo = grf_recall_prec(data_ground, 10, bf.buscar, bf.title_descriptor)
+    sb_pm_mpnet = grf_recall_prec(data_ground, 10, sb.buscar, sb.pm_mpnet_descriptor)
+    sb_distilroberta = grf_recall_prec(data_ground, 10, sb.buscar, sb.distilroberta_descriptor)
+
     
     ejex = [i * 0.1 for i in range(11)]
 
@@ -141,6 +144,8 @@ def main():
     plt.plot(ejex, bd_titulo, marker='o', linestyle='-', label='bd_titulo n= 25')
     plt.plot(ejex, bf_texto, marker='o', linestyle='-', label='bf_texto n = 25')
     plt.plot(ejex, bf_titulo, marker='o', linestyle='-', label='bf_titulo n = 25')
+    plt.plot(ejex, sb_pm_mpnet, marker='o', linestyle='-', label='sb_pm_mpnet n = 25')
+    plt.plot(ejex, sb_distilroberta, marker='o', linestyle='-', label='sb_distilroberta n = 25')
 
     # Configurar límites (de 0 a 1)
     plt.ylim(-0.02, 1)
@@ -157,11 +162,6 @@ def main():
     # Mostrar la gráfica
     plt.grid(True)
     plt.show()
-    
-    #bateria_test(data_ground, bd, bd.descriptores_textos, 25)
-    #bateria_test(data_ground, bd, bd.descriptores_titulos, 25)
-    #bateria_test(data_ground, bf, bf.text_descriptor, 10)
-    #bateria_test(data_ground, bf, bf.title_descriptor, 10)
 
 main()
 
