@@ -46,6 +46,7 @@ Primero se deben instalar los requisitos:
 
 ```bash
 pip install -r requirements.txt
+python -m spacy download es_core_news_sm
 ```
 
 El proyecto requiere CUDA 11.7. Se puede instalar [aquí](https://developer.nvidia.com/cuda-11-7-0-download-archive)
