@@ -1,0 +1,123 @@
+01.1-Introducción a la Recuperación de Información Multimedia
+01.2-Introducción a OpenCV
+01.3-Procesamiento de imágenes. Parte 1 de 2. Operadores punto a punto
+01.4-Procesamiento de imágenes. Parte 2 de 2. Operadores lineales y no lineales
+01.5-Detección de bordes. Parte 1. Sobel
+01.6-Detección de bordes. Parte 2. Canny
+01.7-Detección de bordes. Parte 3. DoG
+02.1-Sistemas de Recuperación de Información Multimedia
+02.2-Descriptores globales gris. Parte 1. Descriptores de intensidad
+02.3-Descriptores globales gris. Parte 2. Descriptores de borde
+02.4-Dominio de Frecuencias. Parte 1. DFT
+02.5-Dominio de Frecuencias. Parte 2. Ejemplos DFT
+02.6-Dominio de Frecuencias. Parte 3. Teorema de Convolución
+02.7-Dominio de Frecuencias. Parte 4. DCT
+02.8-Descriptores globales gris. Parte 3. Texturas
+03.1-Sistema visual humano
+03.2-Disco de Benham
+03.3-Histogramas de color
+03.4-Similitud entre colores
+03.5-Earth mover's distance
+03.6-Procesamiento de videos
+03.7-Flujo óptico y codecs de video
+03.8-Detección de shots
+04.1-Oído humano
+04.2-Audio
+04.3-Leer y editar audio
+04.4-Fourier 1D y frecuencias de audio
+04.5-Descriptores de audio y MFCC
+04.6-Alinear secuencias con DTW (Dynamic Time Warping)
+05.1-Modelo bag-of-words, vocabularios y términos
+05.2-Ley de potencia y distribución normal
+05.3-Descriptor tf-idf
+05.4-Similitud entre descriptores tf-idf
+05.5-Tokenizer, Stopwords, Stemming, Lemmatization, WordNet
+05.6-Ngrams
+05.7-Índice invertido
+05.8-Latent Semantic Analysis
+05.9-Ejemplo LSA en python
+06.1-Búsquedas por similitud
+06.2-Índices multidimensionales y árboles
+06.3-R-tree
+06.4-Búsquedas por similitud en R-tree
+06.5-k-d tree
+06.6-Búsqueda knn usando un k-d tree
+07.1-Hierarchical k-means tree
+07.2-Efectividad versus eficiencia de búsquedas aproximadas
+07.3-Locality sensitive hashing (LSH)
+07.4-Space filling curves
+07.5-PCA-Análisis de componentes principales
+07.6-PCA-Ejemplo y aplicaciones
+07.7-PCA-Búsqueda por similitud
+08.01-Funciones de distancia-Introducción
+08.02-Funciones de distancia-Distancias de Minkowski, Fraccionales y DPF
+08.03-Funciones de distancia-Formas cuadráticas y EMD
+08.04-Funciones de distancia-Distancias de Jaccard, de Hamming, de Hausdorff, de Levenshtein
+08.05-Funciones de distancia-Ultramétricas
+08.06-Índices métricos-Definiciones y pivotes
+08.07-Índices métricos-Búsqueda por rango y knn
+08.08-Índices métricos-Dimensión intrínseca
+08.09-Índices métricos-Métodos de selección y evaluación de pivotes
+08.10-Índices métricos-Búsqueda aproximada
+08.11-Índices métricos-Multimétricas
+09.01-Espacios de alta dimensión-geometría y efectos
+09.02-Espacios de alta dimensión-dimensión intrínseca
+09.03-Espacios de alta dimensión-funciones de distancia
+09.04-Espacios de alta dimensión-captura de datos
+09.05-Evaluación de efectividad-Introducción
+09.06-Evaluación sistemas de recuperación-gráfico recall-precision
+09.07-Evaluación sistemas de recuperación-indicadores únicos
+09.08-Evaluación sistemas de recuperación-correlación de rankings
+09.09-Evaluación clasificadores-detección binaria
+09.10-Evaluación clasificadores-detección binaria con umbral de decisión
+09.11-Evaluación clasificadores-detección multiclase
+09.12-Evaluación clasificadores-ejemplo umbral de decisión
+10.01-Descriptores locales
+10.02-Puntos de interés-Multiescala
+10.03-Puntos de interés-Esquinas (Moravec, Harris-Stephens, Shi-Tomasi)
+10.04-Puntos de interés-Blobs (diferencia de gaussianas)
+10.05-Descriptor SIFT
+10.06-Calcular descriptores SIFT con OpenCV en python
+10.07-Buscar y seleccionar coincidencias entre imágenes
+10.08-Coherencia espacial
+10.09-Coherencia espacial-Modelos de transformación
+10.10-Coherencia espacial-RANSAC
+10.11-Coherencia espacial-Ejemplo RANSAC con OpenCV en python
+10.12-Coherencia espacial-Transformada de Hough
+10.13-Uso de descriptores locales-Image stitching
+10.14-Uso de descriptores locales-Distancia global entre imágenes
+10.15-Descriptores locales, variantes y otras implementaciones
+11.1-Búsqueda de objetos en videos usando descriptores locales
+11.2-Búsqueda de objetos en videos con Bag-of-Visual-Words (BoVW)
+11.3-Clasificación de imágenes con Bag-of-Visual-Words (BoVW)
+12.1-Deep learning-Introducción
+12.10-Uso de CNN en Keras
+12.2-Deep learning-Capa convolucional
+12.3-Deep learning-Capa pooling
+12.4-Deep learning-Capa fully connected y funciones de activación
+12.5-Deep learning-Entrenamiento, dropout y otros
+12.6-Deep learning-Hardware, software, datos
+12.7-Deep learning-ImageNet y redes convolucionales
+12.8-Deep features
+12.9-Uso de CNN en OpenCV
+13.1-Espacio de palabras (word embeddings), word2vec
+13.2-GloVe
+13.3-FastText
+13.4-Sentence embeddings
+13.5-Clasificación de texto con redes convolucionales
+13.6-Clasificación de texto con redes recurrentes
+13.7-Exploración espacio de palabras (word2vec) usando java
+14.1-Buscador de imágenes sin etiquetar en python
+2023-03-20 Consultas semana 02
+2023-03-27 Consultas semana 03
+2023-03-15 Bienvenida a CC5213 Otoño 2023
+Repaso EDD - parte 2 - Repaso TDAs, cola de prioridad y heap
+Repaso EDD - parte 3 - Repaso diccionario, ABB y AVL
+Repaso EDD - parte 4 - Repaso árbol 2-3 y árbol B
+Repaso EDD - parte 5 - Repaso árbol digital (trie)
+Repaso EDD - parte 6 - Repaso hashing
+Repaso EDD - parte 1 - Estructuras de datos y notación O
+Repaso ML - parte 2 - Algoritmos de clustering
+Repaso ML - parte 3 - Repaso algoritmos de clasificación
+Repaso ML - parte 4 - Conjuntos de entrenamiento,validación,test,producción
+Repaso ML - parte 1 - Historia IA y conceptos machine learning

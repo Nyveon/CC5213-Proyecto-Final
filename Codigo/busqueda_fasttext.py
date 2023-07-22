@@ -5,6 +5,7 @@ import os
 import pickle  # nosec
 import matplotlib.pyplot as plt
 import numpy as np
+import json
 
 from sklearn.manifold import TSNE
 from typing import Callable
@@ -16,7 +17,7 @@ script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
 os.chdir(script_dir)
 transcripts = f"{script_dir}/../Videos/Transcripciones/Transcripcion_completa"
-descriptors_file = f"{script_dir}/fasttext.pkl"
+transcripts_json = f"{script_dir}/../Videos/Transcripciones/Transcripcion_json"
 
 model = None
 
@@ -31,6 +32,22 @@ def load_model():
         fasttext_model_path = "cc.es.300.bin"
         model = fasttext.load_model(
             os.path.join(script_dir, fasttext_model_path))
+
+
+def sentence_descriptor(filename: str) -> list:
+    descriptors = []
+    filename = filename.split(".txt")[0] + ".json"
+    with open(os.path.join(transcripts_json, filename),
+              "r", encoding="utf-8") as f:
+        f.readline()
+        f.readline()
+        json_text = f.readline()
+        json_transcript = json.loads(json_text)
+        for fragment in json_transcript:
+            descriptor = model.get_sentence_vector(normalize(fragment["text"]))
+            descriptors.append(descriptor)
+
+    return descriptors
 
 
 def text_descriptor(filename: str) -> list:
@@ -125,9 +142,20 @@ def buscar(texto_consulta: list, n: int, f_descriptor: Callable[[str], list],
         query_vector = model.get_sentence_vector(query)
         closest = None
         distances = {}
-        for video_id, vector in vectors.items():
-            distance = scipy.spatial.distance.cosine(query_vector, vector)
-            distances[video_id] = distance
+        if f_descriptor == sentence_descriptor:
+            for video_id, vector_list in vectors.items():
+                for vector in vector_list:
+                    distance = scipy.spatial.distance.cosine(
+                        query_vector, vector)
+                    if video_id not in distances:
+                        distances[video_id] = distance
+                    else:
+                        distances[video_id] = min(
+                            distances[video_id], distance)
+        else:
+            for video_id, vector in vectors.items():
+                distance = scipy.spatial.distance.cosine(query_vector, vector)
+                distances[video_id] = distance
         closest = sorted(distances.items(), key=lambda x: x[1])[:n]
         results[q] = [str(x[0]) for x in closest]
 
@@ -149,7 +177,7 @@ def visualize(vectors):
     unique_labels = list(set(labels))
 
     # Map each unique label to a color
-    colormap = plt.cm.get_cmap('tab20', len(unique_labels))
+    colormap = plt.colormaps.get_cmap('tab20')
     color_dict = {label: colormap(i) for i, label in enumerate(unique_labels)}
 
     # Use t-SNE to reduce the vectors to two dimensions
@@ -165,9 +193,10 @@ def visualize(vectors):
         plt.annotate(video_id, (vectors_2d[i, 0], vectors_2d[i, 1]))
 
     # Create a legend
-    patches = [plt.Line2D([0], [0], marker='o', color='w', label=label,
-                          markerfacecolor=color,
-                          markersize=10) for label, color in color_dict.items()]
+    patches = [plt.Line2D(
+        [0], [0], marker='o', color='w', label=label,
+        markerfacecolor=color,
+        markersize=10) for label, color in color_dict.items()]
     plt.legend(handles=patches)
 
     plt.show()
@@ -180,4 +209,5 @@ if __name__ == "__main__":
         "Busqueda eficiente con R-trees",
         "Unigramas, bigramas y trigramas",
     ]
-    print(buscar(consulta, 3, text_descriptor))
+    # print(buscar(consulta, 3, sentence_descriptor))
+    visualize(load_descriptors(False, text_descriptor))
