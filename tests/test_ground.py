@@ -2,40 +2,39 @@ import os
 import pandas as pd
 import sys
 
-sys.path.append("..")
-import models.busqueda_tfidf as bd     # noqa: E402
-import models.busqueda_fasttext as bf  # noqa: E402
-import models.busqueda_sbert as bs     # noqa: E402
+from collections import OrderedDict
 
+sys.path.append("..")
+import models.busqueda_tfidf as bd      # noqa: E402
+import models.busqueda_fasttext as bf   # noqa: E402
+import models.busqueda_sbert as bs      # noqa: E402
 
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
 
 
-def r_prec(ground_values: list[str], search_values: list[str], n=3) -> float:
-    """Calcula el R-Precision
+def reciprocal_rank(ground_values: list[str],
+                    search_values: list[str]) -> float:
+    """Calculates the reciprocal rank
 
     Args:
-        ground_values (list[str]): Valores correctos
-        search_values (list[str]): Valores buscados
-        n (int, optional): Cantidad de valores correctos. Defaults to 3.
+        ground_values (list[str]): Correct values
+        search_values (list[str]): Searched values
 
     Returns:
-        float: R-Precision
+        float: reciprocal rank
     """
-    n_prim = 0
-    for value in search_values:
+    for i, value in enumerate(search_values, 1):
         if value in ground_values:
-            n_prim += 1
-
-    return n_prim/n
+            return 1 / i
+    return 0
 
 
 def mrr(r_precisions: list[int]) -> float:
     """Calcula el Mean Reciprocal Rank
 
     Args:
-        r_precisions (list[int]): Lista de R-Precisions
+        reciprocal_rank (list[int]): Lista de reciprocal ranks
 
     Returns:
         float: MRR
@@ -58,21 +57,19 @@ def calcular_mrr(g_truth: pd.DataFrame, n: int, buscador: callable,
     Returns:
         list: Lista de MRRs
     """
-    textos_consulta = g_truth['Query'].tolist()
+    textos_consulta = list(g_truth.keys())
     result_busc_desc = buscador(textos_consulta, n, descriptor)
     r_precisions = []
 
     for key in result_busc_desc.keys():
         resultados = result_busc_desc[key]
+        ground_t = g_truth[key]
 
-        fila_filtrada = g_truth[g_truth['Query'] == key]
-        ground_t = fila_filtrada.iloc[0].tolist()
-
-        r_precs = r_prec(ground_t, resultados)
+        r_precs = reciprocal_rank(ground_t, resultados)
         r_precisions.append(r_precs)
 
         if show_individual:
-            print(f'R-Precision de "{key}": {r_precs:.2f}')
+            print(f'MRR "{key}": {r_precs:.2f}')
 
     return mrr(r_precisions)
 
@@ -109,12 +106,12 @@ def m_ap(average_precisions: list[float]) -> float:
     return sum(average_precisions) / len(average_precisions)
 
 
-def calcular_map(g_truth: pd.DataFrame, n: int, buscador: callable,
-                 descriptor: callable, show_individual=False) -> list:
+def calcular_map(g_truth: OrderedDict, n: int, buscador: callable,
+                 descriptor: callable, show_individual=True) -> list:
     """Calculate the Mean Average Precision
 
     Args:
-        g_truth (pd.DataFrame): Ground truth matrix
+        g_truth (OrderedDict): Ground truth {query: [results]}
         n (int): Number of results to return
         buscador (callable): Search function
         descriptor (callable): Descriptor calculation function
@@ -123,21 +120,20 @@ def calcular_map(g_truth: pd.DataFrame, n: int, buscador: callable,
     Returns:
         list: List of MAPs
     """
-    textos_consulta = g_truth['Query'].tolist()
+    textos_consulta = list(g_truth.keys())
     result_busc_desc = buscador(textos_consulta, n, descriptor)
     average_precisions = []
 
     for key in result_busc_desc.keys():
         resultados = result_busc_desc[key]
-
-        fila_filtrada = g_truth[g_truth['Query'] == key]
-        ground_t = fila_filtrada.iloc[0].tolist()
+        ground_t = g_truth[key]
 
         avg_prec = average_precision(ground_t, resultados)
         average_precisions.append(avg_prec)
 
         if show_individual:
-            print(f'Average Precision for "{key}": {avg_prec:.2f}')
+            print(f'gt "{key}": {ground_t}, res {resultados}')
+            print(f'AP for "{key}": {avg_prec:.2f}')
 
     return m_ap(average_precisions)
 
@@ -154,31 +150,57 @@ def bateria_test(g_truth: pd.DataFrame, modulo_buscador: callable,
     print((f"\nTesteando buscador {modulo_buscador.__name__}"
            f" usando {f_descriptor.__name__}"))
     mrr10 = calcular_mrr(g_truth, 10, modulo_buscador.buscar, f_descriptor)
-    mrr20 = calcular_mrr(g_truth, 20, modulo_buscador.buscar, f_descriptor)
     map3 = calcular_map(g_truth, 3, modulo_buscador.buscar, f_descriptor)
-    map20 = calcular_map(g_truth, 20, modulo_buscador.buscar, f_descriptor)
-    print(f'MRR para n-10 : {mrr10}')
-    print(f'MRR para n-20 : {mrr20}')
     print(f'MAP para n-3 : {map3}')
-    print(f'MAP para n-20 : {map20}')
+    print(f'MRR para n-10 : {mrr10}')
+
+
+def load_ground_truth(filename: str) -> OrderedDict:
+    """Carga el ground truth desde un archivo
+
+    Args:
+        filename (str): Nombre del archivo
+
+    Returns:
+        OrderedDict: Ground truth {query: [results]}
+    """
+    ground_truth = OrderedDict()
+    with open(f"{script_dir}/{filename}", encoding='utf-8') as f:
+        lines = f.readlines()
+        for line in lines:
+            line_split = line.split(',')
+            query = line_split[0].strip()
+            ground_truth[query] = [x.strip() for x in line_split[1:]]
+    return ground_truth
 
 
 def main() -> None:
     """Corre los tests con los ground truths
     """
-    g_truth = pd.read_csv(f"{script_dir}/ground_truth.csv",
-                          encoding='utf-8', delimiter=';', dtype=str)
 
-    for columna in g_truth.columns:
-        if g_truth[columna].dtype == 'object':
-            g_truth[columna] = g_truth[columna].str.strip()
+    print("-- Caso: Keywords y palabras similares en Titulos --")
+    gt = load_ground_truth("gt_titulos.txt")
+    bateria_test(gt, bd, bd.title_descriptor)
+    bateria_test(gt, bd, bd.title_descriptor_stem)
+    bateria_test(gt, bf, bf.title_descriptor)
 
-    bateria_test(g_truth, bd, bd.text_descriptor)
-    bateria_test(g_truth, bd, bd.title_descriptor)
-    bateria_test(g_truth, bf, bf.text_descriptor)
-    bateria_test(g_truth, bf, bf.title_descriptor)
-    bateria_test(g_truth, bs, bs.pm_mpnet_descriptor)
-    bateria_test(g_truth, bs, bs.distilroberta_descriptor)
+    print("-- Caso: Keywords y palabras similares en Texto --")
+    gt = load_ground_truth("gt_textos.txt")
+    bateria_test(gt, bd, bd.text_descriptor)
+    bateria_test(gt, bd, bd.text_descriptor_stem)
+    bateria_test(gt, bf, bf.text_descriptor)
+    bateria_test(gt, bf, bf.sentence_descriptor)
+    bf.model = None
+    bateria_test(gt, bs, bs.pm_mpnet_descriptor)
+    bateria_test(gt, bs, bs.distilroberta_descriptor)
+
+    print("-- Caso: Busqueda semantica --")
+    gt = load_ground_truth("gt_semantic.txt")
+    bateria_test(gt, bd, bd.text_descriptor_stem)
+    bateria_test(gt, bf, bf.sentence_descriptor)
+    del bd.model
+    bateria_test(gt, bs, bs.pm_mpnet_descriptor)
+    bateria_test(gt, bs, bs.distilroberta_descriptor)
 
 
 if __name__ == '__main__':
