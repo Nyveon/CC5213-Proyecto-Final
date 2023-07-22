@@ -6,26 +6,43 @@
 
 
 {%block content %}
-    <h1>Buscador de Prueba</h1>
+    <h1>Buscador NahEri</h1>
+    <small>CC5213 - Recuperación de Información Multimedia</small>
 
-    <form action="/" method="get">
-        <div">
-          <input type="text" placeholder="Buscar" name="query">
-          <button type="submit">Search</button>
+    <form action="/" method="get" onsubmit="showLoadingIndicator()">
+        <div>
+        <input type="text" placeholder="Buscar" name="query"
+        {% if query is not none %}
+            value="{{ query }}"
+        {% endif %}
+        >
+        <button type="submit">Buscar</button>
         </div>
+
+        <div>
+            <label for="buscador">Buscador:</label>
+            <select name="buscador" id="buscador">
+                {% for buscador in buscadores %}
+                <option value="{{ buscador }}"
+                {% if buscador == selected_buscador %}
+                    selected
+                {% endif %}
+                >{{ buscador }}</option>
+                {% endfor %}
+            </select>
+        </div>    
     </form>
 
-    {% if query is not none %}
-    <p>
-        Resultados para: <i>{{ query }}</i>
-    </p>
-    {% endif %}
+    <div id="loading-indicator" style="display: none;">
+        <div class="spinner"></div>
+        <div>Loading...</div>
+    </div>
 
     <ul>
         {% for video in videos %}
         <li>
             <h2>{{ video.title }}</h2>
-            <iframe width="560" height="315" frameborder="0" src="{{ video.embed_url }}"></iframe>
+            <iframe width="560" height="315" class="row" frameborder="0" src="{{ video.embed_url }}"></iframe>
         </li>
         {% endfor %}
     </ul>

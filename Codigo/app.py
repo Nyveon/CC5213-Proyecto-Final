@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request
 import busqueda_descr
+import busqueda_fasttext
+import busqueda_sbert
 import webview
 import os
 
@@ -37,6 +39,24 @@ def load_videos():
     return videos
 
 
+buscadores = {
+    "TF-IDF Textos": (
+        busqueda_descr, busqueda_descr.descriptores_textos),
+    "TF-IDF Títulos": (
+        busqueda_descr, busqueda_descr.descriptores_titulos),
+    "Fasttext Textos": (
+        busqueda_fasttext, busqueda_fasttext.text_descriptor),
+    "Fasttext Fragmentos": (
+        busqueda_fasttext, busqueda_fasttext.sentence_descriptor),
+    "Fasttext Títulos": (
+        busqueda_fasttext, busqueda_fasttext.title_descriptor),
+    "S-BERT MPNet": (
+        busqueda_sbert, busqueda_sbert.pm_mpnet_descriptor),
+    "S-BERT DistilRoberta": (
+        busqueda_sbert, busqueda_sbert.distilroberta_descriptor),
+}
+
+
 def main():
     """
     Inicializa la aplicación web
@@ -48,18 +68,25 @@ def main():
 
     @app.route('/', methods=['GET'])
     def index():
-        query = request.args.get('query', None)
+        buscador = request.args.get('buscador', None)
+        if buscador is not None:
+            modulo_buscador, funcion_buscador = buscadores[buscador]
+            print(buscador)
+
         filtered_list = []
 
+        query = request.args.get('query', None)
         if query is not None:
-            search_result = busqueda_descr.buscar(
-                [query], 3, busqueda_descr.descriptores_textos)
+            search_result = modulo_buscador.buscar(
+                [query], 3, funcion_buscador)
             print(search_result)
 
             for result in search_result[query]:
                 filtered_list.append(videos[result])
 
-        return render_template('index.html', videos=filtered_list, query=query)
+        return render_template('index.html', videos=filtered_list,
+                               query=query, buscadores=buscadores.keys(),
+                               selected_buscador=buscador)
 
     webview.create_window('CC5213', app)
     webview.start()
