@@ -64,7 +64,6 @@ def main():
     """
     Inicializa la aplicación web
     """
-
     videos = load_videos()
     app = Flask(__name__)
 
@@ -76,7 +75,6 @@ def main():
             print(buscador)
 
         filtered_list = []
-
         query = request.args.get('query', None)
         if query is not None:
             search_result = modulo_buscador.buscar(

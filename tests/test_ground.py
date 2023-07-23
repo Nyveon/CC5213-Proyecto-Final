@@ -42,6 +42,7 @@ def mrr(r_precisions: list[int]) -> float:
 
     return sum(r_precisions) / len(r_precisions)
 
+
 def confidence_interval(data: list, confidence: float) -> tuple:
     """Calculates the confidence interval for a given data set
 
@@ -53,7 +54,6 @@ def confidence_interval(data: list, confidence: float) -> tuple:
         tuple: The lower and upper bounds of the confidence interval
     """
     n_iterations = 1000
-    n_size = int(len(data) * 0.50)
     stats = list()
     for _ in range(n_iterations):
         sample = resample(data)
@@ -63,8 +63,10 @@ def confidence_interval(data: list, confidence: float) -> tuple:
     upper = sorted_stats[int((1.0 + confidence) / 2.0 * n_iterations)]
     return lower, upper
 
+
 def calcular_mrr(g_truth: pd.DataFrame, n: int, buscador: callable,
-                 descriptor: callable, show_individual=False, confidence=0.95) -> list:
+                 descriptor: callable, show_individual=False,
+                 confidence=0.95) -> list:
     """Calcula el Mean Reciprocal Rank
 
     Args:
@@ -130,7 +132,8 @@ def m_ap(average_precisions: list[float]) -> float:
 
 
 def calcular_map(g_truth: OrderedDict, n: int, buscador: callable,
-                 descriptor: callable, show_individual=False, confidence = 0.95) -> list:
+                 descriptor: callable, show_individual=False,
+                 confidence=0.95) -> list:
     """Calculate the Mean Average Precision
 
     Args:
@@ -155,9 +158,8 @@ def calcular_map(g_truth: OrderedDict, n: int, buscador: callable,
         average_precisions.append(avg_prec)
 
         if show_individual:
-            #print(f'gt "{key}": {ground_t}, res {resultados}')
-            print(f'AP for "{key}": {avg_prec:.2f}')
-        
+            print(f'AP: {avg_prec:.2f} "{key}": {ground_t}, res {resultados}')
+
     lower, upper = confidence_interval(average_precisions, confidence)
     print(f"Confidence interval for MAP: {lower:.2f} - {upper:.2f}")
 

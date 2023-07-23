@@ -98,15 +98,6 @@ def title_descriptor_lem() -> Union[list, list, TfidfVectorizer]:
     return calcular_descriptores_local(True, lemmatize_text)
 
 
-def text_descriptor_lem() -> Union[list, list, TfidfVectorizer]:
-    """Descriptores de transcripciones completas lemmatizadas
-
-    Returns:
-        Union[list, list, TfidfVectorizer]: Nombres, descriptores y vectorizer
-    """
-    return calcular_descriptores_local(False, lemmatize_text)
-
-
 def calcular_descriptores_local(titulos: bool,
                                 preprocessor: callable = None) -> Union[
                                 list, list, TfidfVectorizer]:

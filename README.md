@@ -8,14 +8,17 @@ Buscador de videos de catedra NahEri.
 📦CC5213-Proyecto-Final
  ┣ 📂models
  ┃ ┣ 📜busqueda_fasttext.py # Motor de busqueda con fasttext.
- ┃ ┣ 📜busqueda_sbert.py    # Motores de busqueda con SBERT.
+ ┃ ┣ 📜busqueda_sbert.py    # Motores de busqueda con s-BERT.
  ┃ ┣ 📜busqueda_tfidf.py    # Motor de busqueda con TF-IDF.
  ┃ ┣ 📜_.bin                # Archivos de modelos descargados localmente.
  ┃ ┗ 📜_.pkl                # Archivos de descirptores calculados offline
  ┣ 📂static                 # Javascript y CSS para el front-end
  ┣ 📂templates              # Templates HTML para el front-end
  ┣ 📂tests
- ┃ ┣ 📜_.csv                # Archivos de ground truth para los tests
+ ┃ ┣ 📜gt_titulos.txt       # Ground truth para busqueda en títulos
+ ┃ ┣ 📜gt_textos.txt        # Ground truth para busqueda en textos completos
+ ┃ ┣ 📜gt_semantic.txt      # Ground truth para busquedas semanticas
+ ┃ ┣ 📜mini_ground.csv      # G.t. para busq. por nombre de unidad en textos completos 
  ┃ ┣ 📜test_ground.py       # Test con varios ground truths de caso distintos
  ┃ ┗ 📜test_mini_ground.py  # Test visual con un mini-ground truth fijo
  ┣ 📂videos
