@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import sys
-
+from sklearn.utils import resample
 from collections import OrderedDict
 
 sys.path.append("..")
@@ -42,9 +42,29 @@ def mrr(r_precisions: list[int]) -> float:
 
     return sum(r_precisions) / len(r_precisions)
 
+def confidence_interval(data: list, confidence: float) -> tuple:
+    """Calculates the confidence interval for a given data set
+
+    Args:
+        data (list): The data to calculate the confidence interval for
+        confidence (float): The confidence level to use for the interval
+
+    Returns:
+        tuple: The lower and upper bounds of the confidence interval
+    """
+    n_iterations = 1000
+    n_size = int(len(data) * 0.50)
+    stats = list()
+    for _ in range(n_iterations):
+        sample = resample(data)
+        stats.append(sum(sample) / len(sample))
+    sorted_stats = sorted(stats)
+    lower = sorted_stats[int((1.0 - confidence) / 2.0 * n_iterations)]
+    upper = sorted_stats[int((1.0 + confidence) / 2.0 * n_iterations)]
+    return lower, upper
 
 def calcular_mrr(g_truth: pd.DataFrame, n: int, buscador: callable,
-                 descriptor: callable, show_individual=False) -> list:
+                 descriptor: callable, show_individual=False, confidence=0.95) -> list:
     """Calcula el Mean Reciprocal Rank
 
     Args:
@@ -70,6 +90,9 @@ def calcular_mrr(g_truth: pd.DataFrame, n: int, buscador: callable,
 
         if show_individual:
             print(f'MRR "{key}": {r_precs:.2f}')
+
+    lower, upper = confidence_interval(r_precisions, confidence)
+    print(f'Confidence interval for MRR: {lower:.2f} - {upper:.2f}')
 
     return mrr(r_precisions)
 
@@ -107,7 +130,7 @@ def m_ap(average_precisions: list[float]) -> float:
 
 
 def calcular_map(g_truth: OrderedDict, n: int, buscador: callable,
-                 descriptor: callable, show_individual=False) -> list:
+                 descriptor: callable, show_individual=False, confidence = 0.95) -> list:
     """Calculate the Mean Average Precision
 
     Args:
@@ -134,6 +157,9 @@ def calcular_map(g_truth: OrderedDict, n: int, buscador: callable,
         if show_individual:
             #print(f'gt "{key}": {ground_t}, res {resultados}')
             print(f'AP for "{key}": {avg_prec:.2f}')
+        
+    lower, upper = confidence_interval(average_precisions, confidence)
+    print(f"Confidence interval for MAP: {lower:.2f} - {upper:.2f}")
 
     return m_ap(average_precisions)
 
@@ -182,25 +208,25 @@ def main() -> None:
     gt = load_ground_truth("gt_titulos.txt")
     bateria_test(gt, bd, bd.title_descriptor)
     bateria_test(gt, bd, bd.title_descriptor_stem)
-    # bateria_test(gt, bf, bf.title_descriptor)
+    bateria_test(gt, bf, bf.title_descriptor)
 
     print("-- Caso: Keywords y palabras similares en Texto --")
     gt = load_ground_truth("gt_textos.txt")
     bateria_test(gt, bd, bd.text_descriptor)
     bateria_test(gt, bd, bd.text_descriptor_stem)
-    # bateria_test(gt, bf, bf.text_descriptor)
-    # bateria_test(gt, bf, bf.sentence_descriptor)
-    # bf.model = None
-    # bateria_test(gt, bs, bs.pm_mpnet_descriptor)
-    # bateria_test(gt, bs, bs.distilroberta_descriptor)
+    bateria_test(gt, bf, bf.text_descriptor)
+    bateria_test(gt, bf, bf.sentence_descriptor)
+    bf.model = None
+    bateria_test(gt, bs, bs.pm_mpnet_descriptor)
+    bateria_test(gt, bs, bs.distilroberta_descriptor)
 
     print("-- Caso: Busqueda semantica --")
     gt = load_ground_truth("gt_semantic.txt")
     bateria_test(gt, bd, bd.text_descriptor_stem)
-    # bateria_test(gt, bf, bf.sentence_descriptor)
-    # del bd.model
-    # bateria_test(gt, bs, bs.pm_mpnet_descriptor)
-    # bateria_test(gt, bs, bs.distilroberta_descriptor)
+    bateria_test(gt, bf, bf.sentence_descriptor)
+    del bf.model
+    bateria_test(gt, bs, bs.pm_mpnet_descriptor)
+    bateria_test(gt, bs, bs.distilroberta_descriptor)
 
 
 if __name__ == '__main__':
