@@ -3,3 +3,5 @@
 Capa fully connected y funciones de activación en Deep learning, 12.4, 12.1, 12.2, 12.7, 12.6, 12.9
 ¿De que manera puedo programar la busqueda semántica latente?, 05.8, 05.9
 ¿Cómo se calculan los indicadores únicos en la evaluación de sistemas de recuperación?, 09.07, 09.05, 09.01
+Quiero medir la efectividad de mi sistema de recuperación de información, 09.05, 09.04, 09.05, 09.06, 09.07, 09.08, 09.09, 09.10, 09.11 09.12
+¿Cómo puedo encontrar un objeto en una imágen?, 12.7, 11.1, 11.2, 11.3

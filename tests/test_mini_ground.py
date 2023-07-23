@@ -139,6 +139,7 @@ def main() -> None:
         data_ground, 10, bf.buscar, bf.text_descriptor)
     bf_titulo = grf_recall_prec(
         data_ground, 10, bf.buscar, bf.title_descriptor)
+    del bf.model
     sb_pm_mpnet = grf_recall_prec(
         data_ground, 10, bs.buscar, bs.pm_mpnet_descriptor)
     sb_distilroberta = grf_recall_prec(

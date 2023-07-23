@@ -37,10 +37,16 @@ def load_videos():
 
 
 buscadores = {
-    "TF-IDF Textos": (
-        tfidf, tfidf.text_descriptor),
     "TF-IDF Títulos": (
         tfidf, tfidf.title_descriptor),
+    "TF-IDF Títulos Stemmizados": (
+        tfidf, tfidf.title_descriptor_stem),
+    "TF-IDF Títulos Lemmatizados": (
+        tfidf, tfidf.title_descriptor_lem),
+    "TF-IDF Textos": (
+        tfidf, tfidf.text_descriptor),
+    "TF-IDF Textos Stemmizados": (
+        tfidf, tfidf.text_descriptor_stem),
     "Fasttext Textos": (
         fasttext, fasttext.text_descriptor),
     "Fasttext Fragmentos": (

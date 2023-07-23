@@ -107,7 +107,7 @@ def m_ap(average_precisions: list[float]) -> float:
 
 
 def calcular_map(g_truth: OrderedDict, n: int, buscador: callable,
-                 descriptor: callable, show_individual=True) -> list:
+                 descriptor: callable, show_individual=False) -> list:
     """Calculate the Mean Average Precision
 
     Args:
@@ -132,7 +132,7 @@ def calcular_map(g_truth: OrderedDict, n: int, buscador: callable,
         average_precisions.append(avg_prec)
 
         if show_individual:
-            print(f'gt "{key}": {ground_t}, res {resultados}')
+            #print(f'gt "{key}": {ground_t}, res {resultados}')
             print(f'AP for "{key}": {avg_prec:.2f}')
 
     return m_ap(average_precisions)
@@ -182,25 +182,25 @@ def main() -> None:
     gt = load_ground_truth("gt_titulos.txt")
     bateria_test(gt, bd, bd.title_descriptor)
     bateria_test(gt, bd, bd.title_descriptor_stem)
-    bateria_test(gt, bf, bf.title_descriptor)
+    # bateria_test(gt, bf, bf.title_descriptor)
 
     print("-- Caso: Keywords y palabras similares en Texto --")
     gt = load_ground_truth("gt_textos.txt")
     bateria_test(gt, bd, bd.text_descriptor)
     bateria_test(gt, bd, bd.text_descriptor_stem)
-    bateria_test(gt, bf, bf.text_descriptor)
-    bateria_test(gt, bf, bf.sentence_descriptor)
-    bf.model = None
-    bateria_test(gt, bs, bs.pm_mpnet_descriptor)
-    bateria_test(gt, bs, bs.distilroberta_descriptor)
+    # bateria_test(gt, bf, bf.text_descriptor)
+    # bateria_test(gt, bf, bf.sentence_descriptor)
+    # bf.model = None
+    # bateria_test(gt, bs, bs.pm_mpnet_descriptor)
+    # bateria_test(gt, bs, bs.distilroberta_descriptor)
 
     print("-- Caso: Busqueda semantica --")
     gt = load_ground_truth("gt_semantic.txt")
     bateria_test(gt, bd, bd.text_descriptor_stem)
-    bateria_test(gt, bf, bf.sentence_descriptor)
-    del bd.model
-    bateria_test(gt, bs, bs.pm_mpnet_descriptor)
-    bateria_test(gt, bs, bs.distilroberta_descriptor)
+    # bateria_test(gt, bf, bf.sentence_descriptor)
+    # del bd.model
+    # bateria_test(gt, bs, bs.pm_mpnet_descriptor)
+    # bateria_test(gt, bs, bs.distilroberta_descriptor)
 
 
 if __name__ == '__main__':
