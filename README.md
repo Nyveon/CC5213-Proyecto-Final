@@ -1,10 +1,10 @@
 # CC5213-Proyecto-Final
 
-Buscador de videos de catedra NahEri.
+Buscador de videos de catedra NahEri, proyecto final de [Nahuel G.](https://github.com/Nawel-GR) y [Eric K](https://github.com/Nyveon).
 
 ## Proyecto
 
-Este software es una aplicación web que corre localmente. Su función es hacer busquedas en los 123 videos del curso `CC5213 - Recuperación de Información Multimedia``. Se implementaron, y compararon 10 técnicas de busqueda:
+Este software es una aplicación web que corre localmente. Su función es hacer busquedas en los 123 videos del curso `CC5213 - Recuperación de Información Multimedia`. Se implementaron, y compararon 10 técnicas de busqueda:
 
 - TF-IDF (de SKLEARN), con solo títulos.
 - TF-IDF + Stemming, con solo títulos.
